@@ -910,11 +910,11 @@
 
     async function loadData(manual = false) {
       try {
-        const url = manual ? '/api/refresh' : '/api/data';
+        const url = '/api';
         const method = manual ? 'POST' : 'GET';
         const res = await fetch(url, { method: method });
         const data = await res.json();
-        appData = manual ? data.report : data;
+        appData = (manual && data.report) ? data.report : data;
         renderAll();
         refreshSeconds = 10;
         document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
