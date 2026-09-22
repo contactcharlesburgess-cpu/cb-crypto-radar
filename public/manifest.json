@@ -1,7 +1,7 @@
 {
-  "name": "CB Crypto AI Radar",
-  "short_name": "Crypto Radar",
-  "description": "Live AI Crypto News Screener and Entry & Exit Radar",
+  "name": "CB Robinhood Crypto Radar",
+  "short_name": "RH Crypto",
+  "description": "Live AI Crypto News Screener and Entry & Exit Radar exclusively for Robinhood assets",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#07090E",

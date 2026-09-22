@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>CB Crypto AI Screener · Live Buy & Exit Radar</title>
+  <title>CB Robinhood Crypto AI Radar · Live Buy & Exit Signals</title>
   
   <!-- PWA & Mobile App Support -->
   <link rel="manifest" href="/manifest.json" />
@@ -11,9 +11,9 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Crypto Radar" />
+  <meta name="apple-mobile-web-app-title" content="RH Crypto" />
   <meta name="theme-color" content="#0E131F" />
-  <meta name="application-name" content="Crypto Radar" />
+  <meta name="application-name" content="RH Crypto" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -672,12 +672,12 @@
   <!-- Top Navigation -->
   <header>
     <div class="brand-group">
-      <div class="brand-badge">CB</div>
+      <div class="brand-badge" style="background: linear-gradient(135deg, #00C805 0%, #10B981 100%);">RH</div>
       <div>
-        <div class="brand-title">CRYPTO AI RADAR</div>
+        <div class="brand-title">ROBINHOOD CRYPTO RADAR</div>
         <div class="brand-sub">
           <span class="live-pulse"></span>
-          <span>LIVE STREAMING · FOREX FACTORY & FINANCIAL JUICE</span>
+          <span>LIVE STREAMING · EXCLUSIVELY ROBINHOOD TRADABLE ASSETS</span>
         </div>
       </div>
     </div>
@@ -704,12 +704,13 @@
     <div class="hero-banner">
       <div class="hero-left">
         <div class="hero-badge-row">
-          <span class="status-pill pill-green" id="heroStatusPill">🟢 ACTIONABLE BUY OPPORTUNITIES DETECTED</span>
+          <span class="status-pill pill-green" id="heroStatusPill">🟢 ACTIONABLE ROBINHOOD BUY OPPORTUNITIES DETECTED</span>
+          <span class="status-pill" style="background: rgba(0, 200, 5, 0.18); border: 1px solid #00C805; color: #4ADE80; font-family: var(--font-mono); font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 8px;">ROBINHOOD EXCLUSIVE</span>
           <span class="status-pill pill-amber" id="heroMacroPill">MACRO: LOW RISK</span>
         </div>
-        <h1 class="hero-title" id="heroActionTitle">AI Conviction: Accumulate Sector Leaders on Dips</h1>
+        <h1 class="hero-title" id="heroActionTitle">Robinhood AI Conviction: Accumulate Leaders on Dips</h1>
         <p class="hero-desc" id="heroActionDesc">
-          Institutions are accumulating AI tokens and spot infrastructure. Extreme Greed (78) warns against chasing mega-caps at resistance; allocate capital into confirmed catalyst leaders with defined risk.
+          Exclusively scanning cryptocurrencies available for direct trading on Robinhood. Real-time news sentiment, momentum, and technical discount zones for high-probability setups.
         </p>
       </div>
 
@@ -730,22 +731,22 @@
     <!-- 🔥 TOP 3 COINS TO BUY RIGHT NOW -->
     <div class="section-header">
       <div class="section-title">
-        <span>🚀 TOP BUY RECOMMENDATIONS (EXACT ENTRY ZONES & STOPS)</span>
+        <span>🚀 TOP ROBINHOOD BUY PICKS (EXACT ENTRY ZONES & STOPS)</span>
       </div>
       <div style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim);">
-        Calculated by News Catalyst + Whale Flow + ICT Structure
+        Robinhood Catalysts + Whale Flow + ICT Structural Levels
       </div>
     </div>
 
     <div class="buy-grid" id="heroBuyGrid">
       <!-- Injected dynamically -->
-      <div style="color: var(--text-dim); padding: 20px;">Scanning real-time buy triggers...</div>
+      <div style="color: var(--text-dim); padding: 20px;">Scanning Robinhood buy triggers...</div>
     </div>
 
     <!-- TABS NAVIGATION -->
     <div class="tab-nav-bar">
       <div class="tabs-left">
-        <button class="tab-link active" onclick="setTab('screener')">📊 All-Crypto Screener</button>
+        <button class="tab-link active" onclick="setTab('screener')">📊 Robinhood Screener</button>
         <button class="tab-link" onclick="setTab('news')">📰 Breaking Crypto News & AI Takeaways</button>
         <button class="tab-link" onclick="setTab('squawk')">⚡ FinancialJuice Macro Squawk</button>
         <button class="tab-link" onclick="setTab('calendar')">📅 Forex Factory Economic Calendar</button>
@@ -758,15 +759,16 @@
     <!-- TAB 1: ALL-CRYPTO SCREENER -->
     <div id="tab-screener">
       <div class="filter-row">
-        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search coin or ticker (e.g. TAO, BTC, NEAR)..." oninput="renderTable()" />
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search Robinhood coin (e.g. DOGE, SOL, PEPE, AVAX, SUI)..." oninput="renderTable()" />
         <div class="pill-filters">
-          <div class="pill-btn active" onclick="setFilter('ALL')">All 60 Coins</div>
+          <div class="pill-btn active" onclick="setFilter('ALL')">All Robinhood Coins (31)</div>
           <div class="pill-btn" onclick="setFilter('BUY_ONLY')">🔥 Buy Signals Only</div>
-          <div class="pill-btn" onclick="setFilter('AI Sector')">🤖 AI Coins</div>
+          <div class="pill-btn" onclick="setFilter('AI & Compute')">🤖 AI & Compute</div>
           <div class="pill-btn" onclick="setFilter('Mega Caps')">👑 Mega Caps</div>
           <div class="pill-btn" onclick="setFilter('Layer 1 / 2')">⚡ Layer 1 / 2</div>
           <div class="pill-btn" onclick="setFilter('DeFi')">🏦 DeFi</div>
           <div class="pill-btn" onclick="setFilter('Memes')">🐶 Memes</div>
+          <div class="pill-btn" onclick="setFilter('Payments & PoW')">💳 Payments & PoW</div>
           <div class="pill-btn" onclick="setFilter('EXIT_ONLY')">🛑 Exit Warnings</div>
         </div>
       </div>
@@ -948,19 +950,19 @@
 
       if (radar.radar_score >= 58) {
         pillEl.className = 'status-pill pill-green';
-        pillEl.textContent = '🟢 ACTIONABLE BUY OPPORTUNITIES DETECTED';
-        titleEl.textContent = 'AI Conviction: Accumulate Sector Leaders on Dips';
-        descEl.textContent = 'Institutions are accumulating AI tokens and spot infrastructure. Extreme Greed (78) warns against chasing mega-caps at resistance; allocate capital into confirmed catalyst leaders with defined risk.';
+        pillEl.textContent = '🟢 ACTIONABLE ROBINHOOD BUY SIGNALS';
+        titleEl.textContent = 'Robinhood AI Conviction: Accumulate Leaders on Dips';
+        descEl.textContent = 'Actionable buy momentum detected across Robinhood-listed assets. Extreme Greed (' + (fng.value || 78) + ') warns against chasing tops at resistance; allocate into confirmed Robinhood discount buy zones with strict stop losses.';
       } else if (radar.radar_score <= 42) {
         pillEl.className = 'status-pill pill-red';
         pillEl.textContent = '🔴 CAPITAL PRESERVATION: TIGHTEN STOPS';
-        titleEl.textContent = 'Defensive Posture: Risk of Market Flush';
-        descEl.textContent = 'Macro headwinds or negative catalyst friction detected. Stand down on fresh long positions and raise trailing stops.';
+        titleEl.textContent = 'Defensive Posture: Risk of Robinhood Crypto Flush';
+        descEl.textContent = 'Macro headwinds or negative catalyst friction detected. Stand down on fresh long positions and raise trailing stop losses.';
       } else {
         pillEl.className = 'status-pill pill-amber';
         pillEl.textContent = '🟡 RANGE-BOUND: BE SELECTIVE';
-        titleEl.textContent = 'Neutral Consolidation: Wait for Key Level Sweeps';
-        descEl.textContent = 'Broad market is coiling. Only take entries when price taps key discount levels.';
+        titleEl.textContent = 'Neutral Consolidation: Wait for Robinhood Discount Entries';
+        descEl.textContent = 'Broad market is coiling. Only take entries when price taps key discount levels on Robinhood.';
       }
 
       // Macro pill

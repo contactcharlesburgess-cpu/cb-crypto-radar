@@ -218,7 +218,7 @@ def fetch_fear_and_greed() -> Dict[str, Any]:
 
 
 def fetch_coingecko_markets() -> List[Dict[str, Any]]:
-    """Fetch live top 60 crypto markets from CoinGecko."""
+    """Fetch live Robinhood crypto markets from CoinGecko."""
     raw = fetch_url(config.FEEDS["coingecko_markets"])
     if not raw:
         return []
@@ -227,10 +227,14 @@ def fetch_coingecko_markets() -> List[Dict[str, Any]]:
         cleaned = []
         for c in coins:
             coin_id = c.get("id", "")
+            # Filter strictly to Robinhood-supported cryptocurrencies
+            if hasattr(config, "ROBINHOOD_COIN_IDS") and coin_id not in config.ROBINHOOD_COIN_IDS:
+                continue
+
             symbol = c.get("symbol", "").upper()
             
             # Identify sector
-            sector = "Altcoins"
+            sector = "Robinhood Assets"
             for sec_name, coin_ids in config.SECTORS.items():
                 if coin_id in coin_ids:
                     sector = sec_name
@@ -264,6 +268,8 @@ def get_all_data(force_refresh: bool = False) -> Dict[str, Any]:
     
     # 1. Check in-memory cache
     if not force_refresh and _CACHE and (now - _CACHE_TIMESTAMP < config.CACHE_TTL_SECONDS):
+        if _CACHE.get("markets"):
+            _CACHE["markets"] = [m for m in _CACHE["markets"] if m.get("id") in config.ROBINHOOD_COIN_IDS]
         return _CACHE
 
     # 2. Check disk cache
@@ -271,6 +277,8 @@ def get_all_data(force_refresh: bool = False) -> Dict[str, Any]:
     if not force_refresh and disk_cached:
         cached_ts = disk_cached.get("_cached_at", 0)
         if now - cached_ts < config.CACHE_TTL_SECONDS:
+            if disk_cached.get("markets"):
+                disk_cached["markets"] = [m for m in disk_cached["markets"] if m.get("id") in config.ROBINHOOD_COIN_IDS]
             _CACHE = disk_cached
             _CACHE_TIMESTAMP = cached_ts
             return _CACHE
@@ -311,7 +319,10 @@ def get_all_data(force_refresh: bool = False) -> Dict[str, Any]:
     if not crypto_news and disk_cached and disk_cached.get("crypto_news"):
         crypto_news = disk_cached["crypto_news"]
     if not markets and disk_cached and disk_cached.get("markets"):
-        markets = disk_cached["markets"]
+        markets = [m for m in disk_cached["markets"] if m.get("id") in config.ROBINHOOD_COIN_IDS]
+
+    # Ensure markets are strictly Robinhood
+    markets = [m for m in markets if m.get("id") in config.ROBINHOOD_COIN_IDS]
 
     _CACHE = {
         "_cached_at": now,
