@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>CB Crypto AI Screener · Live Buy & Exit Radar</title>
+  
+  <!-- PWA & Mobile App Support -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Crypto Radar" />
+  <meta name="theme-color" content="#0E131F" />
+  <meta name="application-name" content="Crypto Radar" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090E;
+      --bg-card: #0E131F;
+      --bg-card-hover: #151C2C;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-green: rgba(16, 185, 129, 0.4);
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --green: #10B981;
+      --green-light: #34D399;
+      --green-glow: rgba(16, 185, 129, 0.2);
+      --cyan: #06B6D4;
+      --cyan-glow: rgba(6, 182, 212, 0.2);
+      --amber: #F59E0B;
+      --amber-glow: rgba(245, 158, 11, 0.2);
+      --red: #EF4444;
+      --red-glow: rgba(239, 68, 68, 0.2);
+      --purple: #A855F7;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding-bottom: 80px;
+    }
+
+    /* Top Bar */
+    header {
+      background: rgba(14, 19, 31, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      color: #07090E;
+      box-shadow: 0 0 20px var(--green-glow);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+    .brand-sub {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--green-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulseAnim 1.6s infinite;
+    }
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: var(--font-sans);
+    }
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    .btn-active {
+      border-color: var(--green);
+      background: var(--green-glow);
+      color: var(--green-light);
+    }
+    .btn-cta {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #07090E;
+      border: none;
+      font-weight: 800;
+      box-shadow: 0 0 16px var(--green-glow);
+    }
+    .btn-cta:hover {
+      box-shadow: 0 0 24px var(--green-glow);
+    }
+    .btn-purple {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #C084FC;
+    }
+    .btn-purple:hover {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: #C084FC;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Master Action Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.04) 50%, rgba(14, 19, 31, 0.95) 100%);
+      border: 1px solid var(--border-green);
+      border-radius: 20px;
+      padding: 24px 30px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-left {
+      max-width: 800px;
+    }
+    .hero-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .status-pill {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-green {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--green);
+      color: var(--green-light);
+    }
+    .pill-amber {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid var(--amber);
+      color: #FCD34D;
+    }
+    .pill-red {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--red);
+      color: #FCA5A5;
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .hero-desc {
+      font-size: 15px;
+      color: #CBD5E1;
+      line-height: 1.5;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 24px;
+      text-align: right;
+    }
+    .hero-stat-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .hero-stat-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .hero-stat-val {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    /* Hero Buy Cards (Top 3 Picks) */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .buy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .buy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .buy-card:hover {
+      border-color: var(--green);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px var(--green-glow);
+    }
+    .buy-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .coin-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .coin-img-lg {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #1E293B;
+    }
+    .coin-ticker-lg {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .coin-sector-tag {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .conviction-pill {
+      background: var(--green-glow);
+      border: 1px solid var(--green);
+      color: var(--green-light);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .price-box {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .price-lg {
+      font-size: 32px;
+      font-weight: 900;
+      font-family: var(--font-mono);
+      color: #fff;
+      line-height: 1;
+    }
+    .change-lg {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .up { color: var(--green-light); }
+    .down { color: var(--red); }
+
+    /* Key Levels Grid inside card */
+    .levels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .level-cell {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .level-cell-full {
+      grid-column: span 2;
+    }
+    .level-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+    .level-val {
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #fff;
+    }
+    .val-green { color: var(--green-light); }
+    .val-red { color: #F87171; }
+    .val-cyan { color: var(--cyan); }
+
+    .card-why {
+      font-size: 13px;
+      color: #CBD5E1;
+      background: rgba(16, 185, 129, 0.06);
+      border-left: 3px solid var(--green);
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.45;
+    }
+
+    /* Navigation Filter Tabs */
+    .tab-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tabs-left {
+      display: flex;
+      gap: 8px;
+    }
+    .tab-link {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-family: var(--font-sans);
+    }
+    .tab-link:hover { color: #fff; }
+    .tab-link.active {
+      color: var(--green-light);
+      border-bottom-color: var(--green);
+    }
+
+    /* Filters & Search */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: #fff;
+      font-size: 14px;
+      font-family: var(--font-sans);
+      outline: none;
+      width: 280px;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--green);
+    }
+
+    .pill-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+    .pill-btn.active {
+      border-color: var(--green);
+      background: var(--green-glow);
+      color: var(--green-light);
+    }
+
+    /* Table Design */
+    .table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th {
+      background: #090D17;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+      color: var(--text);
+    }
+    tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    .symbol-flex {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .coin-img-sm {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .coin-bold {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .coin-dim {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .badge-signal {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .sig-strong-buy {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--green);
+      color: var(--green-light);
+    }
+    .sig-dip {
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid var(--cyan);
+      color: #38BDF8;
+    }
+    .sig-hold {
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #94A3B8;
+    }
+    .sig-warning {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid var(--amber);
+      color: #FCD34D;
+    }
+    .sig-exit {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--red);
+      color: #F87171;
+    }
+
+    /* Live Feed Cards */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .news-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      transition: all 0.2s;
+    }
+    .news-item:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    .news-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .news-headline {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .news-headline:hover {
+      color: var(--cyan);
+    }
+    .news-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .news-takeaway {
+      background: rgba(6, 182, 212, 0.08);
+      border-left: 3px solid var(--cyan);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #E2E8F0;
+      font-weight: 500;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0E131F;
+      border: 1px solid var(--green);
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 9999;
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 1100px) {
+      .buy-grid { grid-template-columns: 1fr; }
+      .hero-banner { flex-direction: column; gap: 20px; }
+      .hero-stats { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-badge">CB</div>
+      <div>
+        <div class="brand-title">CRYPTO AI RADAR</div>
+        <div class="brand-sub">
+          <span class="live-pulse"></span>
+          <span>LIVE STREAMING · FOREX FACTORY & FINANCIAL JUICE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <button class="btn" id="audioBtn" onclick="toggleAudio()">
+        🔊 Sound: <span id="audioLabel">OFF</span>
+      </button>
+      <button class="btn" id="notifBtn" onclick="requestNotificationPermission()">
+        🔔 Desktop Alerts
+      </button>
+      <button class="btn btn-purple" onclick="syncObsidian()">
+        ⚡ Sync Obsidian Vault
+      </button>
+      <button class="btn btn-cta" id="refreshBtn" onclick="loadData(true)">
+        🔄 Scan Now (<span id="refreshTimer">10s</span>)
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- MASTER HERO ACTION BANNER: TELLS YOU EXACTLY WHAT TO DO -->
+    <div class="hero-banner">
+      <div class="hero-left">
+        <div class="hero-badge-row">
+          <span class="status-pill pill-green" id="heroStatusPill">🟢 ACTIONABLE BUY OPPORTUNITIES DETECTED</span>
+          <span class="status-pill pill-amber" id="heroMacroPill">MACRO: LOW RISK</span>
+        </div>
+        <h1 class="hero-title" id="heroActionTitle">AI Conviction: Accumulate Sector Leaders on Dips</h1>
+        <p class="hero-desc" id="heroActionDesc">
+          Institutions are accumulating AI tokens and spot infrastructure. Extreme Greed (78) warns against chasing mega-caps at resistance; allocate capital into confirmed catalyst leaders with defined risk.
+        </p>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat-box">
+          <div class="hero-stat-label">Market Radar</div>
+          <div class="hero-stat-val" style="color: var(--green-light);" id="heroRadarScore">62.0</div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--green-light);">BULLISH BIAS</div>
+        </div>
+        <div class="hero-stat-box">
+          <div class="hero-stat-label">Fear & Greed</div>
+          <div class="hero-stat-val" style="color: var(--amber);" id="heroFngScore">78</div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--amber);">EXTREME GREED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔥 TOP 3 COINS TO BUY RIGHT NOW -->
+    <div class="section-header">
+      <div class="section-title">
+        <span>🚀 TOP BUY RECOMMENDATIONS (EXACT ENTRY ZONES & STOPS)</span>
+      </div>
+      <div style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim);">
+        Calculated by News Catalyst + Whale Flow + ICT Structure
+      </div>
+    </div>
+
+    <div class="buy-grid" id="heroBuyGrid">
+      <!-- Injected dynamically -->
+      <div style="color: var(--text-dim); padding: 20px;">Scanning real-time buy triggers...</div>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <div class="tab-nav-bar">
+      <div class="tabs-left">
+        <button class="tab-link active" onclick="setTab('screener')">📊 All-Crypto Screener</button>
+        <button class="tab-link" onclick="setTab('news')">📰 Breaking Crypto News & AI Takeaways</button>
+        <button class="tab-link" onclick="setTab('squawk')">⚡ FinancialJuice Macro Squawk</button>
+        <button class="tab-link" onclick="setTab('calendar')">📅 Forex Factory Economic Calendar</button>
+      </div>
+      <div style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim);">
+        Updated <span id="lastUpdated" style="color: #fff;">just now</span>
+      </div>
+    </div>
+
+    <!-- TAB 1: ALL-CRYPTO SCREENER -->
+    <div id="tab-screener">
+      <div class="filter-row">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search coin or ticker (e.g. TAO, BTC, NEAR)..." oninput="renderTable()" />
+        <div class="pill-filters">
+          <div class="pill-btn active" onclick="setFilter('ALL')">All 60 Coins</div>
+          <div class="pill-btn" onclick="setFilter('BUY_ONLY')">🔥 Buy Signals Only</div>
+          <div class="pill-btn" onclick="setFilter('AI Sector')">🤖 AI Coins</div>
+          <div class="pill-btn" onclick="setFilter('Mega Caps')">👑 Mega Caps</div>
+          <div class="pill-btn" onclick="setFilter('Layer 1 / 2')">⚡ Layer 1 / 2</div>
+          <div class="pill-btn" onclick="setFilter('DeFi')">🏦 DeFi</div>
+          <div class="pill-btn" onclick="setFilter('Memes')">🐶 Memes</div>
+          <div class="pill-btn" onclick="setFilter('EXIT_ONLY')">🛑 Exit Warnings</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Asset</th>
+              <th>Live Price</th>
+              <th>24h %</th>
+              <th>7d %</th>
+              <th>Action Signal</th>
+              <th>AI Conviction</th>
+              <th>Exact Buy Zone</th>
+              <th>Target 1</th>
+              <th>Stop Loss</th>
+              <th>Risk : Reward</th>
+            </tr>
+          </thead>
+          <tbody id="screenerBody">
+            <tr><td colspan="11" style="text-align: center; padding: 40px; color: var(--text-dim);">Loading all market telemetry...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: NEWS WIRE -->
+    <div id="tab-news" style="display: none;">
+      <div class="feed-container" id="newsContainer"></div>
+    </div>
+
+    <!-- TAB 3: FINANCIALJUICE SQUAWK -->
+    <div id="tab-squawk" style="display: none;">
+      <div class="feed-container" id="squawkContainer"></div>
+    </div>
+
+    <!-- TAB 4: FOREX FACTORY CALENDAR -->
+    <div id="tab-calendar" style="display: none;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date & Time (ET)</th>
+              <th>Currency</th>
+              <th>Impact</th>
+              <th>Economic Release</th>
+              <th>Forecast</th>
+              <th>Previous</th>
+            </tr>
+          </thead>
+          <tbody id="calendarBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast">Obsidian Synced!</div>
+
+  <script>
+    let appData = null;
+    let selectedFilter = 'ALL';
+    let soundEnabled = false;
+    let refreshSeconds = 10;
+    let prevTopSymbols = [];
+
+    // Notification Support
+    function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        alert("This browser does not support desktop notifications.");
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          document.getElementById('notifBtn').classList.add('btn-active');
+          document.getElementById('notifBtn').textContent = '🔔 Alerts ON';
+          new Notification("CB Crypto AI Radar", {
+            body: "Desktop alerts activated! You'll be notified when high-conviction buy setups trigger.",
+            icon: "https://via.placeholder.com/64"
+          });
+        }
+      });
+    }
+
+    function sendDesktopAlert(title, body) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body: body });
+      }
+    }
+
+    // Web Audio Synthesizer
+    function playChime(isBuy) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        if (isBuy) {
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15);
+        } else {
+          osc.frequency.setValueAtTime(440.00, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(220.00, ctx.currentTime + 0.2);
+        }
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('audioLabel').textContent = soundEnabled ? 'ON' : 'OFF';
+      document.getElementById('audioBtn').classList.toggle('btn-active', soundEnabled);
+      if (soundEnabled) playChime(true);
+    }
+
+    function showToast(text) {
+      const t = document.getElementById('toast');
+      t.textContent = text;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    async function syncObsidian() {
+      try {
+        const res = await fetch('/api/sync', { method: 'POST' });
+        showToast('⚡ Obsidian Vault Synced: Crypto Intelligence.md');
+      } catch (e) {
+        showToast('Sync failed');
+      }
+    }
+
+    async function loadData(manual = false) {
+      try {
+        const url = manual ? '/api/refresh' : '/api/data';
+        const method = manual ? 'POST' : 'GET';
+        const res = await fetch(url, { method: method });
+        const data = await res.json();
+        appData = manual ? data.report : data;
+        renderAll();
+        refreshSeconds = 10;
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        if (manual) showToast('Live Market Re-Scanned!');
+      } catch (e) {
+        console.error("Fetch error:", e);
+      }
+    }
+
+    function renderAll() {
+      if (!appData) return;
+      renderHeroBanner();
+      renderHeroBuyCards();
+      renderTable();
+      renderNews();
+      renderSquawk();
+      renderCalendar();
+    }
+
+    function renderHeroBanner() {
+      const radar = appData.market_radar;
+      const fng = appData.fear_and_greed;
+      const macro = appData.macro_risk;
+
+      document.getElementById('heroRadarScore').textContent = radar.radar_score;
+      document.getElementById('heroFngScore').textContent = fng.value || 50;
+      
+      const titleEl = document.getElementById('heroActionTitle');
+      const descEl = document.getElementById('heroActionDesc');
+      const pillEl = document.getElementById('heroStatusPill');
+
+      if (radar.radar_score >= 58) {
+        pillEl.className = 'status-pill pill-green';
+        pillEl.textContent = '🟢 ACTIONABLE BUY OPPORTUNITIES DETECTED';
+        titleEl.textContent = 'AI Conviction: Accumulate Sector Leaders on Dips';
+        descEl.textContent = 'Institutions are accumulating AI tokens and spot infrastructure. Extreme Greed (78) warns against chasing mega-caps at resistance; allocate capital into confirmed catalyst leaders with defined risk.';
+      } else if (radar.radar_score <= 42) {
+        pillEl.className = 'status-pill pill-red';
+        pillEl.textContent = '🔴 CAPITAL PRESERVATION: TIGHTEN STOPS';
+        titleEl.textContent = 'Defensive Posture: Risk of Market Flush';
+        descEl.textContent = 'Macro headwinds or negative catalyst friction detected. Stand down on fresh long positions and raise trailing stops.';
+      } else {
+        pillEl.className = 'status-pill pill-amber';
+        pillEl.textContent = '🟡 RANGE-BOUND: BE SELECTIVE';
+        titleEl.textContent = 'Neutral Consolidation: Wait for Key Level Sweeps';
+        descEl.textContent = 'Broad market is coiling. Only take entries when price taps key discount levels.';
+      }
+
+      // Macro pill
+      const macroPill = document.getElementById('heroMacroPill');
+      macroPill.textContent = 'MACRO: ' + macro.status.replace('_', ' ');
+      macroPill.className = 'status-pill ' + (macro.caution_level === 'HIGH' ? 'pill-red' : (macro.caution_level === 'MODERATE' ? 'pill-amber' : 'pill-green'));
+    }
+
+    function renderHeroBuyCards() {
+      const container = document.getElementById('heroBuyGrid');
+      const topPicks = (appData.top_entries || []).slice(0, 3);
+
+      if (!topPicks.length) {
+        container.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">No high-conviction entries at this second.</div>';
+        return;
+      }
+
+      // Check for new signals to chime / notify
+      const currentTopSymbols = topPicks.map(p => p.symbol);
+      const isNewSignal = currentTopSymbols.some(s => !prevTopSymbols.includes(s));
+      if (isNewSignal && prevTopSymbols.length > 0) {
+        playChime(true);
+        sendDesktopAlert("🔥 NEW CRYPTO BUY SIGNAL", `${topPicks[0].symbol} triggered ${topPicks[0].signal} at $${topPicks[0].price}`);
+      }
+      prevTopSymbols = currentTopSymbols;
+
+      container.innerHTML = topPicks.map(coin => {
+        const isStrong = coin.signal === "STRONG BUY";
+        const badgeColor = isStrong ? 'sig-strong-buy' : 'sig-dip';
+
+        return `
+          <div class="buy-card">
+            <div class="buy-card-top">
+              <div class="coin-profile">
+                <img src="${coin.image}" class="coin-img-lg" onerror="this.src='https://via.placeholder.com/44'" />
+                <div>
+                  <div class="coin-ticker-lg">${coin.symbol}</div>
+                  <div class="coin-sector-tag">${coin.name} · ${coin.sector}</div>
+                </div>
+              </div>
+              <div class="conviction-pill">
+                ⭐ ${coin.conviction}% WIN BIAS
+              </div>
+            </div>
+
+            <div class="price-box">
+              <span class="price-lg">$${formatNum(coin.price)}</span>
+              <span class="change-lg ${coin.change_24h >= 0 ? 'up' : 'down'}">${coin.change_24h > 0 ? '+' : ''}${coin.change_24h}%</span>
+              <div style="margin-top: 6px;">
+                <span class="badge-signal ${badgeColor}">${coin.signal} · ${coin.recommendation}</span>
+              </div>
+            </div>
+
+            <div class="levels-grid">
+              <div class="level-cell level-cell-full">
+                <div class="level-label">🎯 Actionable Buy Zone</div>
+                <div class="level-val val-green">${coin.entry_zone}</div>
+              </div>
+              <div class="level-cell">
+                <div class="level-label">Target 1 (+6%)</div>
+                <div class="level-val val-cyan">${coin.target_1}</div>
+              </div>
+              <div class="level-cell">
+                <div class="level-label">Stop Loss / Invalidation</div>
+                <div class="level-val val-red">${coin.stop_loss}</div>
+              </div>
+              <div class="level-cell">
+                <div class="level-label">Risk : Reward</div>
+                <div class="level-val">${coin.risk_reward}</div>
+              </div>
+              <div class="level-cell">
+                <div class="level-label">AI Score</div>
+                <div class="level-val val-green">${coin.score} / 100</div>
+              </div>
+            </div>
+
+            <div class="card-why">
+              <strong>💡 Why Buy Now:</strong> ${coin.why_buy}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('screenerBody');
+      const search = (document.getElementById('searchInput').value || '').toLowerCase();
+      const assets = appData.asset_signals || [];
+
+      const filtered = assets.filter(a => {
+        const matchSearch = a.symbol.toLowerCase().includes(search) || a.name.toLowerCase().includes(search);
+        if (!matchSearch) return false;
+
+        if (selectedFilter === 'ALL') return true;
+        if (selectedFilter === 'BUY_ONLY') return a.signal === 'STRONG BUY' || a.signal === 'DIP ENTRY';
+        if (selectedFilter === 'EXIT_ONLY') return a.signal === 'DEFENSIVE EXIT' || a.signal === 'TIGHTEN STOPS';
+        return a.sector === selectedFilter;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: var(--text-dim);">No coins match this filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((c, idx) => {
+        let badgeStyle = 'sig-hold';
+        if (c.signal === 'STRONG BUY') badgeStyle = 'sig-strong-buy';
+        else if (c.signal === 'DIP ENTRY') badgeStyle = 'sig-dip';
+        else if (c.signal === 'TIGHTEN STOPS') badgeStyle = 'sig-warning';
+        else if (c.signal === 'DEFENSIVE EXIT') badgeStyle = 'sig-exit';
+
+        return `
+          <tr>
+            <td style="color: var(--text-dim); font-family: var(--font-mono);">${idx + 1}</td>
+            <td>
+              <div class="symbol-flex">
+                <img src="${c.image}" class="coin-img-sm" onerror="this.src='https://via.placeholder.com/32'" />
+                <div>
+                  <div class="coin-bold">${c.symbol}</div>
+                  <div class="coin-dim">${c.name} · ${c.sector}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-family: var(--font-mono); font-weight: 700;">$${formatNum(c.price)}</td>
+            <td style="font-family: var(--font-mono); font-weight: 700;" class="${c.change_24h >= 0 ? 'up' : 'down'}">${c.change_24h > 0 ? '+' : ''}${c.change_24h}%</td>
+            <td style="font-family: var(--font-mono); font-weight: 700;" class="${c.change_7d >= 0 ? 'up' : 'down'}">${c.change_7d > 0 ? '+' : ''}${c.change_7d}%</td>
+            <td><span class="badge-signal ${badgeStyle}">${c.signal}</span></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-family: var(--font-mono); font-weight: 800; color: ${c.score >= 70 ? 'var(--green-light)' : (c.score >= 50 ? 'var(--cyan)' : 'var(--amber)')};">${c.conviction}%</span>
+                <span style="font-size: 11px; color: var(--text-dim);">(${c.score})</span>
+              </div>
+            </td>
+            <td style="font-family: var(--font-mono); font-weight: 600; color: var(--green-light);">${c.entry_zone}</td>
+            <td style="font-family: var(--font-mono); font-weight: 600; color: var(--cyan);">${c.target_1}</td>
+            <td style="font-family: var(--font-mono); font-weight: 600; color: #F87171;">${c.stop_loss}</td>
+            <td style="font-family: var(--font-mono); font-weight: 600;">${c.risk_reward}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderNews() {
+      const container = document.getElementById('newsContainer');
+      const articles = appData.crypto_news || [];
+      if (!articles.length) {
+        container.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">No articles loaded.</div>';
+        return;
+      }
+      container.innerHTML = articles.map(art => `
+        <div class="news-item">
+          <div class="news-top">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="badge-signal ${art.sentiment === 'BULLISH' ? 'sig-strong-buy' : (art.sentiment === 'BEARISH' ? 'sig-exit' : 'sig-hold')}">
+                ${art.sentiment} (${art.score > 0 ? '+' : ''}${art.score})
+              </span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--cyan);">${art.catalyst}</span>
+              <span style="font-size: 11px; color: var(--text-dim);">${art.source}</span>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">${art.pubDate}</span>
+          </div>
+          <a href="${art.link}" target="_blank" class="news-headline">${art.title}</a>
+          <div class="news-body">${art.summary}</div>
+          <div class="news-takeaway">🎯 <strong>AI Trader Takeaway:</strong> ${art.takeaway}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderSquawk() {
+      const container = document.getElementById('squawkContainer');
+      const squawks = appData.financial_juice || [];
+      if (!squawks.length) {
+        container.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">No squawk feeds loaded.</div>';
+        return;
+      }
+      container.innerHTML = squawks.map(sq => `
+        <div class="news-item">
+          <div class="news-top">
+            <span class="badge-signal ${sq.sentiment === 'BULLISH' ? 'sig-strong-buy' : (sq.sentiment === 'BEARISH' ? 'sig-exit' : 'sig-hold')}">
+              ${sq.sentiment} (${sq.score > 0 ? '+' : ''}${sq.score})
+            </span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">${sq.pubDate}</span>
+          </div>
+          <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">${sq.title}</div>
+          <div class="news-takeaway">⚡ <strong>Squawk Impact:</strong> ${sq.takeaway}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderCalendar() {
+      const tbody = document.getElementById('calendarBody');
+      const events = appData.forex_factory || [];
+      if (!events.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-dim);">No economic calendar data.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = events.map(ev => `
+        <tr>
+          <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">${ev.date ? ev.date.replace('T', ' ').slice(0, 16) : '--'}</td>
+          <td><strong style="color: ${ev.country === 'USD' ? 'var(--green-light)' : '#fff'}">${ev.country}</strong></td>
+          <td><span class="badge-signal ${ev.impact === 'High' ? 'sig-exit' : (ev.impact === 'Medium' ? 'sig-warning' : 'sig-hold')}">${ev.impact}</span></td>
+          <td style="font-weight: 700; color: #fff;">${ev.title}</td>
+          <td style="font-family: var(--font-mono);">${ev.forecast || '--'}</td>
+          <td style="font-family: var(--font-mono);">${ev.previous || '--'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function setFilter(filter) {
+      selectedFilter = filter;
+      document.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      renderTable();
+    }
+
+    function setTab(tab) {
+      ['screener', 'news', 'squawk', 'calendar'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+      document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function formatNum(n) {
+      if (!n) return '0.00';
+      return n < 1 ? n.toFixed(4) : (n < 100 ? n.toFixed(2) : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    }
+
+    // High frequency live poll timer (every 10s)
+    setInterval(() => {
+      refreshSeconds--;
+      if (refreshSeconds <= 0) {
+        loadData(false);
+        refreshSeconds = 10;
+      }
+      document.getElementById('refreshTimer').textContent = refreshSeconds + 's';
+    }, 1000);
+
+    // Initial Load
+    loadData(false);
+
+    // Service Worker Registration for PWA Standalone Mode
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.warn('SW registration skipped:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

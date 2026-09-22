@@ -1,0 +1,240 @@
+{
+  "forex_factory": [
+    {
+      "title": "FOMC Member Williams Speaks",
+      "country": "USD",
+      "date": "2026-09-22T10:05:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Jefferson Speaks",
+      "country": "USD",
+      "date": "2026-09-22T10:20:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Barkin Speaks",
+      "country": "USD",
+      "date": "2026-09-22T13:00:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "Flash Manufacturing PMI",
+      "country": "USD",
+      "date": "2026-09-23T09:45:00-04:00",
+      "impact": "Low",
+      "forecast": "53.6",
+      "previous": "53.2",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "Flash Services PMI",
+      "country": "USD",
+      "date": "2026-09-23T09:45:00-04:00",
+      "impact": "Low",
+      "forecast": "55.8",
+      "previous": "56.8",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Barr Speaks",
+      "country": "USD",
+      "date": "2026-09-23T10:05:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "Crude Oil Inventories",
+      "country": "USD",
+      "date": "2026-09-23T10:30:00-04:00",
+      "impact": "Low",
+      "forecast": "-0.6M",
+      "previous": "-0.6M",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "SNB Monetary Policy Assessment & Rate",
+      "country": "CHF",
+      "date": "2026-09-24T03:30:00-04:00",
+      "impact": "High",
+      "forecast": "0.00%",
+      "previous": "0.00%",
+      "is_usd": false,
+      "is_high_impact": true
+    },
+    {
+      "title": "Unemployment Claims",
+      "country": "USD",
+      "date": "2026-09-24T08:30:00-04:00",
+      "impact": "Medium",
+      "forecast": "201K",
+      "previous": "196K",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Barkin Speaks",
+      "country": "USD",
+      "date": "2026-09-24T08:30:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Hammack Speaks",
+      "country": "USD",
+      "date": "2026-09-24T08:50:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "New Home Sales",
+      "country": "USD",
+      "date": "2026-09-24T10:00:00-04:00",
+      "impact": "Low",
+      "forecast": "615K",
+      "previous": "607K",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "BOE Gov Bailey Speaks",
+      "country": "GBP",
+      "date": "2026-09-25T05:15:00-04:00",
+      "impact": "High",
+      "forecast": "",
+      "previous": "",
+      "is_usd": false,
+      "is_high_impact": true
+    },
+    {
+      "title": "Core Durable Goods Orders m/m",
+      "country": "USD",
+      "date": "2026-09-25T08:30:00-04:00",
+      "impact": "Low",
+      "forecast": "0.6%",
+      "previous": "0.4%",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "Revised UoM Consumer Sentiment",
+      "country": "USD",
+      "date": "2026-09-25T10:00:00-04:00",
+      "impact": "Medium",
+      "forecast": "47.4",
+      "previous": "47.8",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "Revised UoM Inflation Expectations",
+      "country": "USD",
+      "date": "2026-09-25T10:00:00-04:00",
+      "impact": "Medium",
+      "forecast": "",
+      "previous": "4.6%",
+      "is_usd": true,
+      "is_high_impact": false
+    },
+    {
+      "title": "FOMC Member Hammack Speaks",
+      "country": "USD",
+      "date": "2026-09-25T14:00:00-04:00",
+      "impact": "Low",
+      "forecast": "",
+      "previous": "",
+      "is_usd": true,
+      "is_high_impact": false
+    }
+  ],
+  "financial_juice": [
+    {
+      "title": "Fed's Collins: With the labor market on a better footing, monetary policy can focus on a timely return to price stability.",
+      "summary": "Fed policy speech focusing on inflation containment.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:35:10 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Fed's Collins: While upside risks to inflation have increased, labor market conditions seem a bit stronger overall.",
+      "summary": "Fed policy comments.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:34:46 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Fed's Collins: I now see an increased likelihood of future scenarios in which inflation remains notably above 2%.",
+      "summary": "Inflation sticky above target.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:34:23 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Fed's Collins: I supported last week's rate hike.",
+      "summary": "Confirmed rate hike vote.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:33:08 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Bank of America raises its 2H26 Brent price estimate to $95 a barrel from $83 a barrel.",
+      "summary": "Higher energy price forecast.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:12:32 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Libya NOC: Closure of Sharara-Zawiya pipeline leads to daily losses of ~130,000 bpd.",
+      "summary": "Crude oil supply disruptions.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:29:35 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "Effective Fed funds rate: 3.88% steady.",
+      "summary": "Overnight benchmark rates.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 13:00:03 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    },
+    {
+      "title": "US Redbook YoY Actual 7.6% vs previous 8.5%.",
+      "summary": "Retail sales telemetry.",
+      "link": "https://www.financialjuice.com",
+      "pubDate": "Tue, 22 Sep 2026 12:55:42 GMT",
+      "source": "FinancialJuice",
+      "author": "FinancialJuice"
+    }
+  ]
+}

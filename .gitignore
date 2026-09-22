@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.vercel
+.DS_Store
+*.log
