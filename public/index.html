@@ -664,6 +664,200 @@
       .buy-grid { grid-template-columns: 1fr; }
       .hero-banner { flex-direction: column; gap: 20px; }
       .hero-stats { justify-content: flex-start; }
+      .ap-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .ap-header { flex-direction: column; align-items: flex-start !important; }
+      .ap-pnl-card { width: 100%; text-align: left !important; }
+    }
+
+    /* Active Position & 24/7 Sentry Card */
+    .active-position-card {
+      background: linear-gradient(135deg, rgba(14, 19, 31, 0.98) 0%, rgba(20, 27, 45, 0.98) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 20px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(16, 185, 129, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .active-position-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #10B981 0%, #06B6D4 50%, #A855F7 100%);
+    }
+    .ap-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ap-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .ap-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+      color: #07090E;
+      font-size: 24px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .ap-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ap-name {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .ap-ticker {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: var(--cyan);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .ap-dir {
+      font-size: 12px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--green-light);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .ap-sentry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--green);
+      color: var(--green-light);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .pulse-emerald-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+      animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .ap-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .ap-pnl-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 18px;
+      text-align: right;
+    }
+    .ap-pnl-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .ap-pnl-val {
+      font-size: 20px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--green-light);
+    }
+    .ap-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .ap-stat-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .ap-stat-box.highlight {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .ap-box-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ap-box-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .ap-box-sub {
+      font-size: 11px;
+      margin-top: 2px;
+      font-family: var(--font-mono);
+    }
+    .ap-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .ap-status-msg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+    .ap-flash {
+      animation: apPriceFlash 0.6s ease;
+    }
+    @keyframes apPriceFlash {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); color: var(--green-light); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
@@ -699,6 +893,69 @@
   </header>
 
   <div class="container">
+
+    <!-- ⚡ ACTIVE TRADER POSITION & LIVE 24/7 SENTRY -->
+    <div class="active-position-card" id="activePositionCard">
+      <div class="ap-header">
+        <div class="ap-left">
+          <div class="ap-icon">⚡</div>
+          <div>
+            <div class="ap-title-row">
+              <span class="ap-name">Hyperliquid</span>
+              <span class="ap-ticker">$HYPE</span>
+              <span class="ap-dir">LONG</span>
+              <span class="ap-sentry-badge">
+                <span class="pulse-emerald-dot"></span>
+                24/7 SENTRY ACTIVE
+              </span>
+            </div>
+            <div class="ap-sub">Asia Session Discount Pullback Entry · Sentry Monitoring Defending $89.50</div>
+          </div>
+        </div>
+        <div class="ap-pnl-card">
+          <div class="ap-pnl-label">LIVE POSITION P&L</div>
+          <div class="ap-pnl-val" id="apLivePnl">--</div>
+        </div>
+      </div>
+
+      <div class="ap-stats-grid">
+        <div class="ap-stat-box">
+          <div class="ap-box-label">ENTRY FILL</div>
+          <div class="ap-box-val font-mono">$92.869</div>
+          <div class="ap-box-sub" style="color: var(--green-light);">Bottom 1.5% Flush</div>
+        </div>
+        <div class="ap-stat-box highlight">
+          <div class="ap-box-label">CURRENT LIVE PRICE</div>
+          <div class="ap-box-val font-mono" id="apLivePrice" style="color: var(--green-light);">$92.750</div>
+          <div class="ap-box-sub font-mono" id="apPriceChg" style="color: var(--text-dim);">Live 10s Stream</div>
+        </div>
+        <div class="ap-stat-box">
+          <div class="ap-box-label">HARD STOP (INVALIDATION)</div>
+          <div class="ap-box-val font-mono" style="color: var(--red);">$89.500</div>
+          <div class="ap-box-sub" style="color: var(--text-dim);">Max Risk: -$3.37 (-3.6%)</div>
+        </div>
+        <div class="ap-stat-box">
+          <div class="ap-box-label">TARGET 1 (ATH RETEST)</div>
+          <div class="ap-box-val font-mono" style="color: var(--green-light);">$97.500</div>
+          <div class="ap-box-sub" style="color: var(--text-dim);">+5.0% · Take 50% Off</div>
+        </div>
+        <div class="ap-stat-box">
+          <div class="ap-box-label">TARGET 2 ($100 BREAKOUT)</div>
+          <div class="ap-box-val font-mono" style="color: var(--cyan);">$100.00+</div>
+          <div class="ap-box-sub" style="color: var(--text-dim);">Discovery · 1:3.6 R:R</div>
+        </div>
+      </div>
+
+      <div class="ap-footer-bar">
+        <div class="ap-status-msg">
+          <span style="color: var(--green-light);">🛡️</span>
+          <span><strong>Sentry Telemetry</strong>: <span id="apStatusMsg">Shelf Support Defended at $91.50–$92.50 · Alert daemon watching $89.50 stop and $97.50 target</span></span>
+        </div>
+        <button class="btn" id="btnRefreshHype" onclick="fetchHypePosition(true)" style="padding: 6px 14px; font-size: 12px; font-weight: 700;">
+          🔄 Refresh Sentry
+        </button>
+      </div>
+    </div>
 
     <!-- MASTER HERO ACTION BANNER: TELLS YOU EXACTLY WHAT TO DO -->
     <div class="hero-banner">
@@ -1191,17 +1448,89 @@
       return n < 1 ? n.toFixed(4) : (n < 100 ? n.toFixed(2) : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     }
 
+    // ==========================================================================
+    // Hyperliquid ($HYPE) Active Sentry & Position Tracker
+    // ==========================================================================
+    const HYPE_ENTRY = 92.869;
+    const HYPE_STOP = 89.50;
+    const HYPE_TARGET_1 = 97.50;
+    const HYPE_TARGET_2 = 100.00;
+
+    async function fetchHypePosition(notify = false) {
+      try {
+        let price = null;
+        let chg24 = null;
+
+        try {
+          const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd&include_24hr_change=true");
+          if (res.ok) {
+            const d = await res.json();
+            price = d?.hyperliquid?.usd;
+            chg24 = d?.hyperliquid?.usd_24h_change;
+          }
+        } catch (e) {
+          console.warn("CoinGecko fetch failed:", e);
+        }
+
+        if (price) {
+          renderHypeUI(price, chg24);
+          if (notify) showToast(`⚡ HYPE Live Price: $${price.toFixed(3)}`);
+        }
+      } catch (err) {
+        console.error("HYPE position fetch error:", err);
+      }
+    }
+
+    function renderHypeUI(price, chg24) {
+      const priceEl = document.getElementById("apLivePrice");
+      const pnlEl = document.getElementById("apLivePnl");
+      const chgEl = document.getElementById("apPriceChg");
+      const statusEl = document.getElementById("apStatusMsg");
+
+      if (!priceEl || !pnlEl) return;
+
+      const diff = price - HYPE_ENTRY;
+      const pnlPct = (diff / HYPE_ENTRY) * 100;
+      const isProfit = diff >= 0;
+
+      priceEl.textContent = `$${price.toFixed(3)}`;
+      priceEl.classList.add("ap-flash");
+      setTimeout(() => priceEl.classList.remove("ap-flash"), 600);
+
+      pnlEl.textContent = `${isProfit ? "+" : ""}$${diff.toFixed(2)} (${isProfit ? "+" : ""}${pnlPct.toFixed(2)}%)`;
+      pnlEl.style.color = isProfit ? "var(--green-light)" : "var(--red)";
+
+      if (chgEl && chg24 !== null) {
+        chgEl.textContent = `24h: ${chg24 >= 0 ? "+" : ""}${chg24.toFixed(2)}% · Live Stream`;
+        chgEl.className = `ap-box-sub font-mono ${chg24 >= 0 ? "val-green" : "val-red"}`;
+      }
+
+      if (statusEl) {
+        if (price <= HYPE_STOP) {
+          statusEl.innerHTML = `<span style="color: var(--red); font-weight: 800;">🚨 STOP LOSS BREACHED: Price dropped below $89.50! Hard invalidation reached.</span>`;
+        } else if (price >= HYPE_TARGET_2) {
+          statusEl.innerHTML = `<span style="color: var(--purple); font-weight: 800;">🎉 TARGET 2 HIT: $100+ milestone breakout achieved!</span>`;
+        } else if (price >= HYPE_TARGET_1) {
+          statusEl.innerHTML = `<span style="color: var(--green-light); font-weight: 800;">🎯 TARGET 1 HIT ($97.50): Take 50% profit, trail stop to breakeven ($92.87)!</span>`;
+        } else {
+          statusEl.textContent = `Shelf Support Defended at $91.50–$92.50 · 24/7 daemon actively watching $89.50 stop`;
+        }
+      }
+    }
+
     // High frequency live poll timer (every 10s)
     setInterval(() => {
       refreshSeconds--;
       if (refreshSeconds <= 0) {
         loadData(false);
+        fetchHypePosition(false);
         refreshSeconds = 10;
       }
       document.getElementById('refreshTimer').textContent = refreshSeconds + 's';
     }, 1000);
 
     // Initial Load
+    fetchHypePosition(false);
     loadData(false);
 
     // Service Worker Registration for PWA Standalone Mode
