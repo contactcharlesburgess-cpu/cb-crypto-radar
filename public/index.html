@@ -142,6 +142,22 @@
 
   <!-- ======================= HYPE ======================= -->
   <section class="view" id="v-hype">
+    <!-- Active Robinhood Holdings & Working Order Banner -->
+    <div class="card" style="border-color:rgba(194,205,148,.35);background:linear-gradient(180deg,rgba(194,205,148,0.08) 0%,rgba(10,15,10,0.6) 100%);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <span class="pill live">ACTIVE ROBINHOOD POSITION</span>
+          <b style="font-size:15px;margin-left:8px">23.1532 HYPE @ $85.45 avg</b>
+        </div>
+        <div class="mono" style="font-size:13px">Cost: <b>$1,997.21</b> (incl. $18.79 fee)</div>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px">
+        <div><span class="dim">Break-even (buy fee):</span> <b style="color:var(--olive)">$86.26</b></div>
+        <div><span class="dim">Break-even (round-trip fee):</span> <b style="color:var(--olive)">$87.08</b></div>
+        <div><span class="dim">Working Order:</span> <span class="pill warn">Stop Buy 17.0009 @ $87.40 (~$1.5k)</span></div>
+      </div>
+    </div>
+
     <div class="two-col">
       <div>
         <div class="card">
@@ -183,12 +199,17 @@
         </div>
 
         <div class="card" style="border-color: rgba(194, 205, 148, 0.28);">
-          <h2><span>💰 Staged Cash Allocator</span><small>DCA / Tranche Planner ($3,500 War Chest)</small></h2>
+          <h2><span>💰 Capital &amp; Order Allocator</span><small>Robinhood Position + Working Orders</small></h2>
+          <div style="font-size:12px;margin-bottom:10px;line-height:1.5" class="muted">
+            • <b>Current Fill:</b> 23.1532 HYPE @ $85.45 avg ($1,997.21 filled)<br>
+            • <b>Working Stop Buy:</b> 17.0009 HYPE @ $87.40 (~$1,500.00 working)<br>
+            • <b>Total Deployed:</b> ~$3,497.21 (~40.15 total HYPE if triggered)
+          </div>
           <div class="grid g2">
-            <label class="f">Total Capital ($)<input id="dcaTotal" type="number" step="1" value="3500"></label>
-            <label class="f">Tranche 1 Limit ($)<input id="dcaT1" type="number" step="0.01" value="85.00"></label>
-            <label class="f">Tranche 2 Limit ($)<input id="dcaT2" type="number" step="0.01" value="82.50"></label>
-            <label class="f">Tranche 3 Limit ($)<input id="dcaT3" type="number" step="0.01" value="80.00"></label>
+            <label class="f">Remaining Reserve ($)<input id="dcaTotal" type="number" step="1" value="1500"></label>
+            <label class="f">Working Stop Buy ($)<input id="dcaT1" type="number" step="0.01" value="87.40"></label>
+            <label class="f">Dip Limit Bid ($)<input id="dcaT2" type="number" step="0.01" value="82.50"></label>
+            <label class="f">Deep Liquidity Bid ($)<input id="dcaT3" type="number" step="0.01" value="79.00"></label>
           </div>
           <div class="result" id="dcaOut" style="margin-top:10px"></div>
         </div>
@@ -222,10 +243,34 @@
       <div class="scroll-x" style="margin-top:12px"><table id="portTable"></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
         <button class="btn primary" onclick="editPosition()">+ Add position</button>
+        <button class="btn" onclick="resetToVerifiedPositions()">Reset to verified fills</button>
         <button class="btn" onclick="exportPositions()">Export backup</button>
         <button class="btn" onclick="importPositions()">Import backup</button>
       </div>
-      <p class="dim" style="font-size:11px;margin:10px 2px 0">Positions never leave your browser: the server only returns public prices. Clearing Safari data erases them, so export a backup. P&amp;L = (price − avg cost) × quantity; cost = avg cost × quantity.</p>
+      <p class="dim" style="font-size:11px;margin:10px 2px 0">Positions are stored securely in your browser's private storage. Server fetches live prices for P&amp;L calculations in real time.</p>
+    </div>
+
+    <!-- Active Working Orders Card -->
+    <div class="card" style="border-color:rgba(194,205,148,.25)">
+      <h2><span>⚡ Working Orders (Robinhood)</span><small>open pending orders</small></h2>
+      <div style="background:rgba(194,205,148,0.05);border:1px solid rgba(194,205,148,0.2);border-radius:10px;padding:14px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <span class="pill live">WORKING ORDER · GOOD FOR WEEK</span>
+            <b style="font-size:14px;margin-left:8px">HYPE — Stop Buy</b>
+          </div>
+          <span class="mono" style="font-size:13px;color:var(--olive)">Triggers @ <b>$87.40</b> (Limit $88.274)</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px;font-size:12.5px">
+          <div><span class="dim">Size:</span> <b>17.0009 HYPE</b></div>
+          <div><span class="dim">Order Total:</span> <b>~$1,500.00</b> (incl. 0.95% fee)</div>
+          <div><span class="dim">Placed:</span> <b>Today 11:27 AM CT</b></div>
+          <div><span class="dim">If Triggered:</span> <b>~40.15 total HYPE (~$3,497 total cost)</b></div>
+        </div>
+        <div class="dim" style="font-size:11.5px;margin-top:10px;line-height:1.4">
+          ⚠️ <b>How this Stop Buy works:</b> This order is resting <i>above</i> current market price. If HYPE rallies to <b>$87.40</b>, it triggers an order to buy 17 more HYPE tokens up to $88.274. If you do not want to add on a breakout rally, cancel it in the Robinhood app under <b>HYPE → Orders</b>.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -318,9 +363,18 @@ const cls = n => n == null ? 'muted' : n > 0 ? 'up' : n < 0 ? 'down' : 'muted';
 const timeAgo = iso => { const s = (Date.now() - new Date(iso)) / 1000; return s < 60 ? 'just now' : s < 3600 ? Math.round(s/60) + 'm ago' : Math.round(s/3600) + 'h ago'; };
 async function getJSON(url) { const r = await fetch(url, { cache: 'no-store' }); const j = await r.json(); if (!r.ok || j.status === 'error') throw new Error(j.error || r.status); return j; }
 
-// ------------------------------------------------------------------ state
-let dash = null, hl = null, quotes = {}, view = store.get('cbr_view', 'hype'), sector = 'All', sortKey = 'volume_24h', sortDir = -1;
-let positions = store.get('cbr_positions', []);
+const VERIFIED_INITIAL_POSITIONS = [
+  { symbol: 'HYPE', where: 'Robinhood Crypto', qty: 23.1532, avg: 85.4487, stop: 83.50, target: 95.00 },
+  { symbol: 'SOL', where: 'Robinhood Crypto', qty: 15.58619, avg: 114.40, stop: 108.50, target: 125.00 },
+  { symbol: 'META', where: 'Robinhood Equities', qty: 0.25997, avg: 769.31, stop: null, target: 850.00 }
+];
+
+let positions = store.get('cbr_positions');
+if (!positions || !Array.isArray(positions) || positions.length === 0 || !store.get('cbr_seeded_rh_20260929_v1')) {
+  positions = VERIFIED_INITIAL_POSITIONS;
+  store.set('cbr_positions', positions);
+  store.set('cbr_seeded_rh_20260929_v1', true);
+}
 const errs = { dash: null, hl: null };
 
 function showErrors() {
@@ -413,8 +467,8 @@ function renderSpark(closes, mark) {
 }
 
 function renderDcaPlanner() {
-  const tot = +$('dcaTotal').value || 3500;
-  const t1 = +$('dcaT1').value || 85.00, t2 = +$('dcaT2').value || 82.50, t3 = +$('dcaT3').value || 80.00;
+  const tot = +$('dcaTotal').value || 1500;
+  const t1 = +$('dcaT1').value || 87.40, t2 = +$('dcaT2').value || 82.50, t3 = +$('dcaT3').value || 79.00;
   const a1 = tot * 0.40, a2 = tot * 0.35, a3 = tot * 0.25;
   const q1 = t1 > 0 ? a1 / t1 : 0, q2 = t2 > 0 ? a2 / t2 : 0, q3 = t3 > 0 ? a3 / t3 : 0;
   const totalTokens = q1 + q2 + q3;
@@ -638,6 +692,12 @@ function importPositions() {
     } catch { alert("That file isn't a CB Radar positions backup."); }
   };
   inp.click();
+}
+function resetToVerifiedPositions() {
+  if (confirm("Reset positions to verified Robinhood fills (HYPE 23.15 @ $85.45, SOL 15.58 @ $114.40, META 0.26 @ $769.31)?")) {
+    positions = JSON.parse(JSON.stringify(VERIFIED_INITIAL_POSITIONS));
+    savePositions();
+  }
 }
 
 const CHARTS = {
