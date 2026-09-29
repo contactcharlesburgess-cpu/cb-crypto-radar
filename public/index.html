@@ -220,6 +220,147 @@
       border-color: var(--purple-light);
     }
 
+    /* ⚡ HERO LIVE CALLOUT BANNER */
+    .live-callout-hero {
+      background: linear-gradient(135deg, rgba(14, 19, 31, 0.98) 0%, rgba(10, 28, 32, 0.95) 50%, rgba(14, 19, 31, 0.98) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 35px rgba(16, 185, 129, 0.15), inset 0 0 20px rgba(16, 185, 129, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .live-callout-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #10B981, #06B6D4, #A855F7, #10B981);
+      background-size: 300% 100%;
+      animation: gradientSlide 4s linear infinite;
+    }
+    @keyframes gradientSlide {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    .callout-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .callout-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .callout-radar-pill {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.6);
+      color: #34D399;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .radar-dot-ping {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulsePing 1.4s ease-in-out infinite;
+    }
+    @keyframes pulsePing {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.35); opacity: 1; box-shadow: 0 0 14px #34D399; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+    .callout-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .callout-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .callout-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 900px) {
+      .callout-grid { grid-template-columns: 1fr; }
+    }
+    .callout-cell {
+      background: rgba(19, 26, 41, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .callout-cell.cell-primary {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.06);
+    }
+    .callout-cell-lbl {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .callout-cell-main {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .callout-cell-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+    .callout-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .callout-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     /* TOP STREAMING TICKER TAPE (MARQUEE) */
     .ticker-tape-container {
       background: #090D17;
@@ -1818,6 +1959,100 @@
 
   <div class="container">
 
+    <!-- ⚡ HERO LIVE CALLOUT BANNER: HYPERLIQUID ($HYPE) -->
+    <div class="live-callout-hero" id="liveHypeCallout">
+      <div class="callout-top-row">
+        <div>
+          <div class="callout-badge-wrap">
+            <span class="callout-radar-pill">
+              <span class="radar-dot-ping"></span>
+              LIVE TRADING CALLOUT · ACTIONABLE NOW
+            </span>
+            <span class="buffer-pill buffer-safe" id="heroCalloutStatus">🟢 OPTIMAL DISCOUNT BUY ZONE</span>
+          </div>
+          <div class="callout-title" style="margin-top: 8px;">
+            <span>⚡ HYPERLIQUID ($HYPE) RE-ENTRY CALLOUT</span>
+            <span class="pos-tag tag-hype" style="font-size: 12px;">PERP / SPOT DEX</span>
+          </div>
+          <div class="callout-subtitle">
+            Capital Preserved via Stop Shield at $89.60 ($3,507.89 Cash Available) · Re-entering High-Conviction Higher-Low Shelf
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--text-dim); letter-spacing: 0.8px;">HYPERLIQUID MARK</div>
+          <div class="val-green font-mono" id="heroHypePrice" style="font-size: 28px; font-weight: 900;">$88.380</div>
+          <div class="font-mono" style="font-size: 11px; color: var(--cyan-light);" id="heroHypeBookDepth">Bid: $88.37 · Ask: $88.39 · Spread: $0.001</div>
+        </div>
+      </div>
+
+      <div class="callout-grid">
+        <!-- CELL 1: THE BEST ENTRY CALLOUT -->
+        <div class="callout-cell cell-primary">
+          <div>
+            <div class="callout-cell-lbl">
+              <span>🎯 BEST LIMIT ENTRY TIERS</span>
+              <span class="val-green font-mono">50/50 TRANCHES</span>
+            </div>
+            <div class="callout-cell-main" style="color: var(--green-light);">
+              <div>Tranche 1 (Immediate 50%): <strong class="font-mono">$88.35 – $88.40</strong></div>
+              <div style="margin-top: 4px;">Tranche 2 (Dip Limit 50%): <strong class="font-mono">$88.10 – $88.15</strong></div>
+            </div>
+          </div>
+          <div class="callout-cell-sub">
+            <strong>Target Average Entry: ~$88.25</strong><br>
+            Sizing: ~$1,750 per tranche (~19.8 HYPE each · 39.6 HYPE total for $3,507 cash).
+          </div>
+        </div>
+
+        <!-- CELL 2: NON-NEGOTIABLE RISK DEFENSE -->
+        <div class="callout-cell">
+          <div>
+            <div class="callout-cell-lbl">
+              <span>🛑 HARD INVALIDATION STOP</span>
+              <span class="val-red font-mono">MAX RISK ~$0.55/COIN</span>
+            </div>
+            <div class="callout-cell-main font-mono val-red" style="font-size: 20px;">
+              $87.800 Hard Stop
+            </div>
+          </div>
+          <div class="callout-cell-sub">
+            Strict structural defense below 09:00 UTC higher low ($87.85). If candle body breaks $87.80, thesis invalidated immediately. Max loss: ~$22.
+          </div>
+        </div>
+
+        <!-- CELL 3: PROFIT TARGETS & R:R -->
+        <div class="callout-cell">
+          <div>
+            <div class="callout-cell-lbl">
+              <span>🚀 TAKE PROFIT MILESTONES</span>
+              <span class="val-cyan font-mono">2.3:1 TO 9.7:1 R:R</span>
+            </div>
+            <div class="callout-cell-main font-mono val-cyan">
+              <div>TP 1: <strong>$89.70</strong> <span style="font-size: 12px; color: var(--green-light);">(+$1.32 / coin)</span></div>
+              <div style="margin-top: 4px;">TP 2: <strong>$94.00</strong> <span style="font-size: 12px; color: var(--green-light);">(+$5.62 / coin)</span></div>
+            </div>
+          </div>
+          <div class="callout-cell-sub">
+            At $89.70 (TP1): Sell 50% to bank profit, move stop loss to breakeven ($88.25). Let remainder run risk-free to $94.00 macro sweep.
+          </div>
+        </div>
+      </div>
+
+      <div class="callout-action-row">
+        <div class="callout-actions-left">
+          <a href="https://app.hyperliquid.xyz/trade/HYPE" target="_blank" class="btn btn-cta" style="text-decoration: none; padding: 12px 20px; font-size: 13px;">
+            ⚡ Open Hyperliquid & Execute Trade (HYPE) ↗
+          </a>
+          <button class="btn btn-purple" onclick="copyHypeCalloutOrder()" style="padding: 12px 18px; font-size: 13px;">
+            📋 Copy Order Limits to Clipboard
+          </button>
+        </div>
+        <div class="font-mono" style="font-size: 11px; color: var(--text-dim);" id="heroHypeTime">
+          Live stream updating sub-second via Hyperliquid L1 API
+        </div>
+      </div>
+    </div>
+
     <!-- 3. MASTER PORTFOLIO COMMAND DECK -->
     <section class="portfolio-deck" id="portfolioDeck">
       
@@ -3204,13 +3439,28 @@
     }
 
     function copyHypeOrder() {
-      const orderText = "BUY HYPE Limit @ $88.60 | Hard Stop: $87.80 | TP1: $89.70 | TP2: $91.80 (Allocation: $3,507 Liquid Cash / 39.5 HYPE)";
+      const orderText = "BUY HYPE Limit @ $88.38 | Hard Stop: $87.80 | TP1: $89.70 | TP2: $94.00 (Allocation: $3,507 Liquid Cash / 39.6 HYPE)";
       navigator.clipboard.writeText(orderText).then(() => {
         showToast("📋 HYPE Re-Entry Limit Order Copied to Clipboard!");
       }).catch(() => {
         showToast("Copied: " + orderText);
       });
     }
+
+    function copyHypeCalloutOrder() {
+      const text = "HYPERLIQUID ($HYPE) RE-ENTRY ORDER:\n" +
+        "Tranche 1 (50%): Limit $88.38 ($1,750 / ~19.8 HYPE)\n" +
+        "Tranche 2 (50%): Limit $88.12 ($1,750 / ~19.8 HYPE)\n" +
+        "Hard Stop: $87.80\n" +
+        "TP1: $89.70 (Take 50%, move stop to BE)\n" +
+        "TP2: $94.00 (Macro target)";
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 HYPE Callout Orders Copied to Clipboard!");
+      }).catch(() => {
+        showToast("Orders:\n" + text);
+      });
+    }
+    window.copyHypeCalloutOrder = copyHypeCalloutOrder;
 
     let lastHypeMark = 0;
     async function pollHyperliquidCockpit() {
@@ -3260,6 +3510,30 @@
         const rEl = document.getElementById('hypeRMultiple');
         if (rEl && h.levels) {
           rEl.textContent = `R-Multiple: ${h.levels.rr_tp1}R (TP1) / ${h.levels.rr_tp2}R (TP2) · Invalidation: -$${h.levels.risk_per_coin.toFixed(2)}`;
+        }
+
+        // Update Hero Live Callout Banner
+        const heroPEl = document.getElementById('heroHypePrice');
+        if (heroPEl) {
+          heroPEl.textContent = `$${mark.toFixed(3)}`;
+          if (lastHypeMark && mark !== lastHypeMark) {
+            heroPEl.style.transition = 'color 0.15s ease';
+            heroPEl.style.color = mark > lastHypeMark ? 'var(--green-light)' : 'var(--red-light)';
+            setTimeout(() => { heroPEl.style.color = ''; }, 600);
+          }
+        }
+        const heroDepth = document.getElementById('heroHypeBookDepth');
+        if (heroDepth) {
+          heroDepth.textContent = `Bid: $${(h.best_bid || mark).toFixed(2)} · Ask: $${(h.best_ask || mark).toFixed(2)} · Spread: $${(h.spread || 0.001).toFixed(3)}`;
+        }
+        const heroStat = document.getElementById('heroCalloutStatus');
+        if (heroStat) {
+          heroStat.textContent = h.status_label;
+          heroStat.className = `buffer-pill ${h.status === 'IN_BUY_ZONE' ? 'buffer-safe' : (h.status === 'DEEP_DISCOUNT' ? 'buffer-warn' : (h.status === 'STOPPED_OUT' ? 'buffer-danger' : 'buffer-safe'))}`;
+        }
+        const heroTime = document.getElementById('heroHypeTime');
+        if (heroTime) {
+          heroTime.textContent = `Live Hyperliquid L1 Telemetry · Updated ${data.timestamp} UTC`;
         }
 
         // Live App Notifications on Status Change
