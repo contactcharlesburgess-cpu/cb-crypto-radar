@@ -1,7 +1,7 @@
 {
-  "name": "CB Crypto AI Radar",
+  "name": "CB Crypto Radar",
   "short_name": "CB Radar",
-  "description": "Live Institutional Crypto Intelligence, Robinhood Signals & Hyperliquid Execution Terminal",
+  "description": "Live crypto prices, Hyperliquid data, news and a private on-device portfolio.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#07090E",

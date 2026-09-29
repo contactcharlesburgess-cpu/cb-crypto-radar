@@ -1,5 +1,5 @@
 // Service Worker for CB Crypto AI Radar PWA
-const CACHE_NAME = 'cb-crypto-radar-v2';
+const CACHE_NAME = 'cb-crypto-radar-v3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

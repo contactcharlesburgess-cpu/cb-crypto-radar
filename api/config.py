@@ -23,7 +23,8 @@ except Exception:
 PORT = 5080
 CACHE_TTL_SECONDS = 30  # 30-second cache for high-frequency live updates
 
-# Monitored cryptocurrencies (Robinhood tradable + Hyperliquid L1)
+# Legacy CoinGecko ids (backup source only). Aptos, Fantom and Polygon removed:
+# not tradable on Robinhood as of 2026-09-29.
 ROBINHOOD_COIN_IDS = [
     "hyperliquid",
     "bitcoin",
@@ -37,7 +38,6 @@ ROBINHOOD_COIN_IDS = [
     "avalanche-2",
     "cardano",
     "chainlink",
-    "polygon-ecosystem-token",
     "near",
     "uniswap",
     "litecoin",
@@ -46,8 +46,6 @@ ROBINHOOD_COIN_IDS = [
     "aave",
     "ripple",
     "sui",
-    "aptos",
-    "fantom",
     "render-token",
     "fetch-ai",
     "compound-governance-token",
@@ -82,8 +80,7 @@ SECTORS = {
     "AI & Compute": ["render-token", "fetch-ai", "near"],
     "Mega Caps": ["bitcoin", "ethereum", "solana"],
     "Layer 1 / 2": [
-        "avalanche-2", "cardano", "polygon-ecosystem-token",
-        "sui", "aptos", "fantom"
+        "avalanche-2", "cardano", "sui"
     ],
     "DeFi": ["uniswap", "aave", "chainlink", "compound-governance-token"],
     "Memes": ["dogecoin", "shiba-inu", "pepe", "bonk", "dogwifcoin"],
@@ -123,52 +120,112 @@ SYMBOL_TO_ID = {
 
 ID_TO_SYMBOL = {v: k for k, v in SYMBOL_TO_ID.items()}
 
-# Charles Burgess Active Portfolio Defaults
-PORTFOLIO_CONFIG = {
-    "hype": {
-        "symbol": "HYPE",
-        "name": "Hyperliquid",
-        "entry_price": 93.11,
-        "tokens": 39.970,
-        "cost_basis": 3580.0,
-        "stop_loss": 89.633,
-        "target_1": 120.00,
-        "target_2": 150.00,
-        "exchange": "Hyperliquid Perp DEX",
-        "thesis": "Perp DEX cash flow titan with 100% buyback/burn tokenomics. Defending $89.633 demand shield.",
-    },
-    "sol": {
-        "symbol": "SOL",
-        "name": "Solana",
-        "entry_price": 114.40,
-        "tokens": 15.58619,
-        "cost_basis": 1800.0,
-        "stop_loss": 108.50,
-        "target_1": 125.00,
-        "target_2": 140.00,
-        "target_3": 180.00,
-        "exchange": "Robinhood Crypto",
-        "thesis": "High-throughput L1 blue-chip. Filled at $114.40 discount shelf; targeting $125 swing and $140 breakout.",
-    },
-    "meta": {
-        "symbol": "META",
-        "name": "Meta Platforms",
-        "entry_price": 769.31,
-        "shares": 0.25997,
-        "cost_basis": 200.0,
-        "stop_loss": None,
-        "target_1": 850.00,
-        "target_2": 1000.00,
-        "exchange": "Robinhood Equities",
-        "thesis": "Permanent compounding investment (3.2B users, Llama AI open-source moat, huge buybacks). No stop loss.",
-    }
-}
 
-# Signal Thresholds (0 to 100 Scale)
-SIGNAL_THRESHOLDS = {
-    "STRONG_BUY": 74,       # Clear catalyst + favorable momentum
-    "DIP_ENTRY": 58,        # Positive sentiment, buy support/iFVG pullback
-    "HOLD": 43,             # Choppy/neutral, wait for trigger
-    "TIGHTEN_STOPS": 28,    # Warning signs, lock in profits
-    "DEFENSIVE_EXIT": 0,    # Severe negative catalyst / exploit / macro shock
+# ----------------------------------------------------------------------------
+# Robinhood crypto universe — primary market list.
+# Verified against Robinhood's tradable USD pairs on 2026-09-29 (stablecoins
+# and PAXG excluded; DOT and GRAM left out: CoinPaprika data for them is
+# unreliable). symbol -> (CoinPaprika id, sector).
+# Only coins in this map are shown on the site, so everything listed is
+# buyable on Robinhood. Re-check when Robinhood adds or removes coins.
+# ----------------------------------------------------------------------------
+COINPAPRIKA_TICKERS = "https://api.coinpaprika.com/v1/tickers?quotes=USD"
+
+RH_COINS = {
+    # Mega caps
+    "BTC": ("btc-bitcoin", "Mega Caps"),
+    "ETH": ("eth-ethereum", "Mega Caps"),
+    "SOL": ("sol-solana", "Mega Caps"),
+    "XRP": ("xrp-xrp", "Mega Caps"),
+    "BNB": ("bnb-binance-coin", "Mega Caps"),
+    # Perp DEX
+    "HYPE": ("hype-hyperliquid", "Perp DEX & L1"),
+    "ASTER": ("aster-aster", "Perp DEX & L1"),
+    "LIT": ("lit-lighter", "Perp DEX & L1"),
+    "AVNT": ("avantis", "Perp DEX & L1"),
+    # Layer 1 / 2
+    "AVAX": ("avax-avalanche", "Layer 1 / 2"),
+    "ADA": ("ada-cardano", "Layer 1 / 2"),
+    "SUI": ("sui-sui", "Layer 1 / 2"),
+    "NEAR": ("near-near-protocol", "Layer 1 / 2"),
+    "SEI": ("sei-sei", "Layer 1 / 2"),
+    "ALGO": ("algo-algorand", "Layer 1 / 2"),
+    "HBAR": ("hbar-hedera-hashgraph", "Layer 1 / 2"),
+    "XLM": ("xlm-stellar", "Layer 1 / 2"),
+    "ATOM": ("atom-cosmos", "Layer 1 / 2"),
+    "LTC": ("ltc-litecoin", "Layer 1 / 2"),
+    "BCH": ("bch-bitcoin-cash", "Layer 1 / 2"),
+    "ETC": ("etc-ethereum-classic", "Layer 1 / 2"),
+    "ZEC": ("zec-zcash", "Layer 1 / 2"),
+    "XTZ": ("xtz-tezos", "Layer 1 / 2"),
+    "ARB": ("arb-arbitrum", "Layer 1 / 2"),
+    "OP": ("op-optimism", "Layer 1 / 2"),
+    "STRK": ("strk-starknet", "Layer 1 / 2"),
+    "MNT": ("mnt-mantle", "Layer 1 / 2"),
+    "IMX": ("imx-immutable-x", "Layer 1 / 2"),
+    "MEGA": ("mega-megaeth", "Layer 1 / 2"),
+    "XPL": ("xpl-plasma", "Layer 1 / 2"),
+    "CC": ("cc-canton-network", "Layer 1 / 2"),
+    "FLR": ("flr-flare-network", "Layer 1 / 2"),
+    "XCN": ("xcn-chain", "Layer 1 / 2"),
+    "SKR": ("skr-seeker", "Layer 1 / 2"),
+    # DeFi & infra
+    "AAVE": ("aave-new", "DeFi"),
+    "UNI": ("uni-uniswap", "DeFi"),
+    "CRV": ("crv-curve-dao-token", "DeFi"),
+    "COMP": ("comp-compoundd", "DeFi"),
+    "LDO": ("ldo-lido-dao", "DeFi"),
+    "MORPHO": ("morpho-morpho", "DeFi"),
+    "AERO": ("aero-aerodrome-finance", "DeFi"),
+    "SYRUP": ("syrup-syrup-token", "DeFi"),
+    "ENA": ("ena-ethena", "DeFi"),
+    "ONDO": ("ondo-ondo", "DeFi"),
+    "SKY": ("sky-sky", "DeFi"),
+    "SNX": ("snx-synthetix-network-token", "DeFi"),
+    "RAY": ("ray-raydium", "DeFi"),
+    "ORCA": ("orca-orca", "DeFi"),
+    "JTO": ("jto-jito", "DeFi"),
+    "PYTH": ("pyth-pyth-network", "DeFi"),
+    "LINK": ("link-chainlink", "DeFi"),
+    "QNT": ("qnt-quant", "DeFi"),
+    "ZRO": ("zro-layerzero", "DeFi"),
+    "W": ("w-wormhole", "DeFi"),
+    "EIGEN": ("eigen-eigenlayer", "DeFi"),
+    "ZRX": ("zrx-0x", "DeFi"),
+    "GRT": ("grt-the-graph", "DeFi"),
+    "WLFI": ("wlfi-official-world-liberty-financial", "DeFi"),
+    "CHIP": ("chip-usdai", "DeFi"),
+    "RE": ("re-re", "DeFi"),
+    "BILL": ("bill-billions-network", "DeFi"),
+    # AI & data
+    "FET": ("fetch-ai", "AI & Data"),
+    "RENDER": ("rndr-render-token", "AI & Data"),
+    "VIRTUAL": ("virtual-virtual-protocol", "AI & Data"),
+    "WLD": ("wld-worldcoin", "AI & Data"),
+    "VVV": ("vvv-venice-token", "AI & Data"),
+    "BIO": ("bio-bio-protocol", "AI & Data"),
+    "SENT": ("sent-sentient", "AI & Data"),
+    # Gaming / consumer
+    "AXS": ("axs-axie-infinity", "Gaming & Consumer"),
+    "BAT": ("bat-basic-attention-token", "Gaming & Consumer"),
+    "ZORA": ("zora-zora", "Gaming & Consumer"),
+    # Memes
+    "DOGE": ("doge-dogecoin", "Memes"),
+    "SHIB": ("shib-shiba-inu", "Memes"),
+    "PEPE": ("pepe-pepe", "Memes"),
+    "BONK": ("bonk-bonk", "Memes"),
+    "WIF": ("wif-dogwifcoin", "Memes"),
+    "FLOKI": ("floki-floki-inu", "Memes"),
+    "PENGU": ("pengu-pudgy-penguins", "Memes"),
+    "TRUMP": ("trump-official-trump", "Memes"),
+    "POPCAT": ("popcat-popcat", "Memes"),
+    "MEW": ("mew-cat-in-a-dogs-world", "Memes"),
+    "MOODENG": ("moodeng-moo-deng-moodengsolcom", "Memes"),
+    "PNUT": ("pnut-peanut-the-squirrel", "Memes"),
+    "CASHCAT": ("cashcat-cash-cat", "Memes"),
 }
+RH_PAPRIKA_IDS = {v[0]: k for k, v in RH_COINS.items()}
+
+# Momentum board: minimum liquidity so thin coins can't top the list on noise.
+MOMENTUM_MIN_VOLUME = 10_000_000   # $ traded in 24h
+MOMENTUM_MIN_MCAP = 100_000_000
