@@ -185,7 +185,25 @@ def compute_asset_signals(
         # Key technical levels
         support_level = round(low_24h, 4 if price < 10 else 2)
         resistance_level = round(high_24h, 4 if price < 10 else 2)
+        exchange = coin.get("exchange", config.EXCHANGE_TAGS.get(coin.get("id", ""), "Robinhood"))
+
+        # Special tactical notes for Charles Burgess core holdings
+        if symbol == "HYPE":
+            signal = "ACTIVE HOLD" if score >= 60 else signal
+            badge_class = "badge-buy"
+            recommendation = "ACCUMULATE / HOLD"
+            buy_urgency = "CORE_POSITION_HOLD"
+            tactical_plan = f"Charles Core Holding (39.97 HYPE @ $93.11 basis). Defending $89.633 demand shield. Stop: $89.633. Target 1: $120.00 / Target 2: $150.00+."
+            why_buy = f"Perp DEX volume leader (#1 on Hyperliquid L1) with 100% revenue buyback tokenomics. +{chg_24h}% daily momentum."
+            score = max(score, 88.5)
+            conviction = 95
+        elif symbol == "SOL":
+            tactical_plan = f"Charles Core Holding (15.586 SOL @ $114.40 limit fill). Demand shelf held at $114. Stop: $108.50. Target 1: $125.00 / Target 2: $140.00."
+
         invalidation = stop_val
+        fvg_low = round(price * 0.984, 4 if price < 1 else 2)
+        fvg_high = round(price * 0.996, 4 if price < 1 else 2)
+        sweep_level = round(min(low_24h * 0.994, price * 0.975), 4 if price < 1 else 2)
 
         results.append({
             "id": coin["id"],
@@ -198,6 +216,7 @@ def compute_asset_signals(
             "market_cap": coin["market_cap"],
             "rank": coin["rank"],
             "sector": coin["sector"],
+            "exchange": exchange,
             "image": coin["image"],
             "score": score,
             "signal": signal,
@@ -207,15 +226,24 @@ def compute_asset_signals(
             "tactical_plan": tactical_plan,
             "why_buy": why_buy,
             "entry_zone": f"${entry_low:,.4f}" if price < 1 else f"${entry_low:,.2f} – ${entry_high:,.2f}",
+            "entry_low": entry_low,
+            "entry_high": entry_high,
             "stop_loss": f"${stop_val:,.4f}" if price < 1 else f"${stop_val:,.2f}",
+            "stop_loss_val": stop_val,
             "target_1": f"${target1_val:,.4f}" if price < 1 else f"${target1_val:,.2f}",
+            "target_1_val": target1_val,
             "target_2": f"${target2_val:,.4f}" if price < 1 else f"${target2_val:,.2f}",
+            "target_2_val": target2_val,
             "risk_reward": f"{rr_ratio} : 1",
+            "rr_ratio": rr_ratio,
             "conviction": conviction,
             "news_sentiment": round(asset_news_score, 1),
             "support": support_level,
             "resistance": resistance_level,
             "invalidation": invalidation,
+            "fvg_zone": f"${fvg_low:,.4f} – ${fvg_high:,.4f}" if price < 1 else f"${fvg_low:,.2f} – ${fvg_high:,.2f}",
+            "discount_demand": f"${round(low_24h, 4 if price < 1 else 2):,.2f} – ${round(entry_low, 4 if price < 1 else 2):,.2f}" if price >= 1 else f"${round(low_24h, 4):,.4f} – ${round(entry_low, 4):,.4f}",
+            "liquidity_sweep": f"${sweep_level:,.4f}" if price < 1 else f"${sweep_level:,.2f}",
             "top_news": sent_info.get("top_news", []),
         })
 
@@ -235,12 +263,15 @@ def build_full_intelligence_report(data: Dict[str, Any], enriched_news: List[Dic
     market_radar = compute_market_radar_score(fng, enriched_news)
     
     import sentiment_analyzer
+    import data_fetcher
     asset_sentiment_map = sentiment_analyzer.calculate_asset_sentiment_map(enriched_news)
     asset_signals = compute_asset_signals(markets, asset_sentiment_map, market_radar)
 
     # Filter top buy opportunities and exit warnings
-    top_entries = [a for a in asset_signals if a["signal"] in ["STRONG BUY", "DIP ENTRY"]][:6]
+    top_entries = [a for a in asset_signals if a["signal"] in ["STRONG BUY", "DIP ENTRY", "ACTIVE HOLD"]][:6]
     top_exits = [a for a in asset_signals if a["signal"] in ["DEFENSIVE EXIT", "TIGHTEN STOPS"]][:6]
+
+    portfolio = data_fetcher.get_live_portfolio_data()
 
     return {
         "timestamp": data.get("timestamp"),
@@ -250,4 +281,5 @@ def build_full_intelligence_report(data: Dict[str, Any], enriched_news: List[Dic
         "top_exits": top_exits,
         "asset_signals": asset_signals,
         "total_assets_tracked": len(asset_signals),
+        "portfolio": portfolio,
     }

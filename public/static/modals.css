@@ -1,0 +1,768 @@
+/* ==========================================================================
+   CB Crypto AI Radar - Modals & Analysis Tools CSS
+   TradingView Advanced Charts, Deep Coin Intelligence, Risk Calculator
+   ========================================================================== */
+
+/* Modal Backdrop Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(4, 6, 11, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Modal Content Card */
+.modal-dialog {
+  background: #0E131F;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.1);
+  width: 100%;
+  max-width: 1060px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #F8FAFC;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+}
+
+.modal-overlay.active .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.modal-dialog-chart {
+  max-width: 1120px;
+  height: 86vh;
+}
+
+.modal-dialog-coin {
+  max-width: 880px;
+}
+
+.modal-dialog-risk {
+  max-width: 780px;
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 18px 24px;
+  background: rgba(14, 19, 31, 0.98);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.modal-title-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #07090E;
+  font-weight: 900;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-subtitle {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94A3B8;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #EF4444;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Timeframe Bar inside Chart Modal */
+.chart-timeframe-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tf-btn {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tf-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tf-btn.active {
+  background: #10B981;
+  color: #07090E;
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body-chart {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tradingview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  flex: 1;
+  background: #0E131F;
+}
+
+/* Deep Coin Modal Elements */
+.coin-hero-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.coin-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.coin-hero-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #1E293B;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.coin-hero-ticker {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.coin-hero-name {
+  font-size: 13px;
+  color: #94A3B8;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.coin-hero-price-box {
+  text-align: right;
+}
+
+.coin-hero-price {
+  font-size: 30px;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+}
+
+.coin-hero-chg {
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+/* AI Conviction Score Gauge */
+.ai-conviction-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.conviction-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.conviction-title {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conviction-score-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 900;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10B981;
+  color: #34D399;
+}
+
+.conviction-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.conviction-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #06B6D4, #10B981, #A855F7);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.conviction-factors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.factor-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.factor-label {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.factor-val {
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ICT Smart Money Section */
+.ict-section {
+  margin-bottom: 24px;
+}
+
+.section-subhead {
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #06B6D4;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ict-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ict-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.ict-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.ict-card.highlight-green {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.ict-card.highlight-cyan {
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.05);
+}
+
+.ict-card.highlight-red {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.ict-label {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #94A3B8;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ict-val {
+  font-size: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  color: #fff;
+}
+
+.ict-desc {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+/* Tactical Plan Card */
+.tactical-plan-box {
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-left: 4px solid #10B981;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+}
+
+.tactical-plan-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #34D399;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tactical-plan-body {
+  font-size: 13px;
+  color: #E2E8F0;
+  line-height: 1.5;
+}
+
+/* Modal Action Buttons Footer */
+.modal-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(10, 14, 23, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.modal-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-exec-rh {
+  background: linear-gradient(135deg, #00C805 0%, #10B981 100%);
+  color: #07090E !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 20px rgba(0, 200, 5, 0.35);
+  border: none !important;
+  text-decoration: none;
+}
+
+.btn-exec-rh:hover {
+  box-shadow: 0 0 28px rgba(0, 200, 5, 0.55);
+  transform: translateY(-2px);
+}
+
+.btn-exec-hl {
+  background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+  color: #07090E !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+  border: none !important;
+  text-decoration: none;
+}
+
+.btn-exec-hl:hover {
+  box-shadow: 0 0 28px rgba(6, 182, 212, 0.55);
+  transform: translateY(-2px);
+}
+
+/* Position Risk Calculator Styles */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.risk-input-card, .risk-output-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.risk-output-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(6, 182, 212, 0.02) 100%);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.calc-group {
+  margin-bottom: 16px;
+}
+
+.calc-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #94A3B8;
+  margin-bottom: 6px;
+}
+
+.calc-input-wrapper {
+  position: relative;
+}
+
+.calc-input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748B;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.calc-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 14px 10px 30px;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.calc-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.risk-presets-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.preset-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94A3B8;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.preset-chip.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10B981;
+  color: #34D399;
+}
+
+.calc-stat-hero {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.calc-hero-label {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.calc-hero-val {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  color: #34D399;
+  margin: 4px 0;
+}
+
+.calc-hero-sub {
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #CBD5E1;
+}
+
+.calc-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.calc-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.calc-res-label {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.calc-res-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Target Ladder */
+.target-ladder {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.ladder-header {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #06B6D4;
+  text-transform: uppercase;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.ladder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.ladder-row:last-child {
+  border-bottom: none;
+}
+
+/* Warnings */
+.calc-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calc-alert-warn {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid #F59E0B;
+  color: #FCD34D;
+}
+
+.calc-alert-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #EF4444;
+  color: #FCA5A5;
+}
+
+/* Quick Fill Bar */
+.quick-fill-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.quick-fill-select {
+  background: #0E131F;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+/* Clickable table row styling */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickable-row:hover td {
+  background: rgba(16, 185, 129, 0.07) !important;
+}
+
+/* Chart icon button */
+.btn-table-chart {
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: #38BDF8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-table-chart:hover {
+  background: rgba(6, 182, 212, 0.25);
+  border-color: #38BDF8;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+  .ict-grid {
+    grid-template-columns: 1fr;
+  }
+  .conviction-factors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modal-dialog-chart {
+    height: 94vh;
+  }
+}

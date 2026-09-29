@@ -2,8 +2,6 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/api/data", "destination": "/api" },
-    { "source": "/api/refresh", "destination": "/api" },
-    { "source": "/api/sync", "destination": "/api" }
+    { "source": "/api/(.*)", "destination": "/api" }
   ]
 }

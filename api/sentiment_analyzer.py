@@ -50,6 +50,7 @@ BEARISH_KEYWORDS = {
 }
 
 ASSET_PATTERNS = {
+    "HYPE": [r"\bhype\b", r"\bhyperliquid\b", r"\bpurr\b"],
     "BTC": [r"\bbtc\b", r"\bbitcoin\b", r"\bsatoshi\b"],
     "ETH": [r"\beth\b", r"\bethereum\b", r"\bether\b", r"\bvitalik\b"],
     "SOL": [r"\bsol\b", r"\bsolana\b"],

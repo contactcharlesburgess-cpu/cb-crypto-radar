@@ -1,5 +1,5 @@
 """
-Vercel Serverless Function entry point for CB Crypto AI Radar.
+Vercel Serverless Function entry point for CB Crypto AI Radar & Hyperliquid Cockpit.
 """
 
 import http.server
@@ -18,6 +18,7 @@ import config
 import data_fetcher
 import sentiment_analyzer
 import signal_generator
+import hyperliquid_cockpit
 
 
 def get_fresh_report(force: bool = False):
@@ -40,14 +41,39 @@ def get_fresh_report(force: bool = False):
 class handler(http.server.BaseHTTPRequestHandler):
     """Vercel Serverless Function Handler."""
 
+    def log_message(self, format, *args):
+        """Silently format messages to avoid crashing serverless logs."""
+        try:
+            sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
+        except Exception:
+            pass
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+        self.end_headers()
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
         if path in ["/api/health", "/health"]:
             self.send_json({"status": "ok", "platform": "vercel"})
+        elif path in ["/api/hyperliquid", "/api/hl"]:
+            try:
+                hl_data = hyperliquid_cockpit.fetch_hyperliquid_cockpit()
+                self.send_json(hl_data)
+            except Exception as e:
+                self.send_json({"error": str(e)}, status=500)
+        elif path == "/api/portfolio":
+            try:
+                port_data = data_fetcher.get_live_portfolio_data()
+                self.send_json(port_data)
+            except Exception as e:
+                self.send_json({"error": str(e)}, status=500)
         else:
-            # Default GET /api/data
+            # Default GET /api/data or /api
             try:
                 report = get_fresh_report(force=False)
                 self.send_json(report)
@@ -58,11 +84,22 @@ class handler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        try:
-            report = get_fresh_report(force=True)
-            self.send_json({"status": "success", "report": report})
-        except Exception as e:
-            self.send_json({"error": str(e)}, status=500)
+        if path == "/api/portfolio":
+            try:
+                content_length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(content_length) if content_length > 0 else b"{}"
+                updates = json.loads(body.decode("utf-8")) if body else {}
+                data_fetcher.update_active_portfolio(updates)
+                port_data = data_fetcher.get_live_portfolio_data()
+                self.send_json({"status": "success", "portfolio": port_data})
+            except Exception as e:
+                self.send_json({"error": str(e)}, status=500)
+        else:
+            try:
+                report = get_fresh_report(force=True)
+                self.send_json({"status": "success", "report": report})
+            except Exception as e:
+                self.send_json({"error": str(e)}, status=500)
 
     def send_json(self, data, status=200):
         body = json.dumps(data, default=str).encode("utf-8")
@@ -70,7 +107,7 @@ class handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.end_headers()
@@ -79,6 +116,6 @@ class handler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
