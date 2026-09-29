@@ -63,6 +63,9 @@ EXCHANGE_TAGS = {
 FEEDS = {
     "forex_factory": "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
     "financial_juice": "https://www.financialjuice.com/feed.ashx",
+    "cointelegraph": "https://cointelegraph.com/rss",
+    "coindesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+    "decrypt": "https://decrypt.co/feed",
     "fear_and_greed": "https://api.alternative.me/fng/?limit=7",
     "cryptocompare_news": "https://min-api.cryptocompare.com/data/v2/news/?lang=EN",
     "coingecko_markets": (
