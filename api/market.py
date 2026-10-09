@@ -490,6 +490,36 @@ CALLOUT_CONFIGS = {
         "notes": "High volatility momentum play. Enter strictly on range lows ($0.00000360–$0.00000385). Never chase green spikes.",
         "conviction": "SPECULATIVE",
     },
+    "DOGE": {
+        "name": "Dogecoin",
+        "sector": "Meme Blue Chip",
+        "robinhood": True,
+        "entry_low": 0.162,
+        "entry_high": 0.174,
+        "reclaim_trigger": 0.188,
+        "stop_loss": 0.152,
+        "target_1": 0.220,
+        "target_2": 0.265,
+        "timeframe": "4H / Daily",
+        "setup_type": "Institutional Liquidity Base",
+        "notes": "Original meme leader. Clean accumulation shelf between $0.162–$0.174 with stop below $0.152.",
+        "conviction": "MEDIUM-HIGH",
+    },
+    "TRUMP": {
+        "name": "Official Trump",
+        "sector": "PolitiFi / Catalysts",
+        "robinhood": True,
+        "entry_low": 8.10,
+        "entry_high": 8.90,
+        "reclaim_trigger": 10.20,
+        "stop_loss": 7.30,
+        "target_1": 12.80,
+        "target_2": 16.50,
+        "timeframe": "4H",
+        "setup_type": "High-Beta Event Catalyst Dip",
+        "notes": "Direct Trump policy proxy. High volatility; rest limit bids between $8.10–$8.90. Never chase green candles.",
+        "conviction": "SPECULATIVE",
+    },
 }
 
 
@@ -558,6 +588,33 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 desc = f"Broke below hard stop (${stop}). Stand down until structure reclaims."
                 dist_pct = None
 
+        # Staged Robinhood Tranche Plan for Charles's $5,058 Dry Powder
+        tranche_1_usd = 1770.30  # 35%
+        tranche_2_usd = 2023.20  # 40%
+        tranche_3_usd = 1264.50  # 25%
+        mid_entry = round((elo + ehi) / 2.0, 8 if elo < 0.01 else 2)
+
+        t1_tok = round(tranche_1_usd / ehi, 6 if ehi < 1.0 else 3)
+        t2_tok = round(tranche_2_usd / mid_entry, 6 if mid_entry < 1.0 else 3)
+        t3_tok = round(tranche_3_usd / elo, 6 if elo < 1.0 else 3)
+        tot_tok = round(t1_tok + t2_tok + t3_tok, 6 if elo < 1.0 else 3)
+        blend_avg = round(5058.00 / tot_tok, 8 if elo < 0.01 else 2) if tot_tok > 0 else avg_e
+        down_loss = round(max(0.0, (blend_avg - stop) * tot_tok), 2)
+        r_pct = round(down_loss / 5058.00 * 100.0, 1)
+
+        tranche_plan = {
+            "tranche_1": {"pct": 35, "usd": tranche_1_usd, "price": ehi, "tokens": t1_tok},
+            "tranche_2": {"pct": 40, "usd": tranche_2_usd, "price": mid_entry, "tokens": t2_tok},
+            "tranche_3": {"pct": 25, "usd": tranche_3_usd, "price": elo, "tokens": t3_tok},
+            "total_tokens": tot_tok,
+            "blended_avg": blend_avg,
+            "stop_loss": stop,
+            "downside_loss": down_loss,
+            "risk_pct": r_pct,
+            "target_1": t1,
+            "target_2": t2,
+        }
+
         callouts.append({
             "symbol": sym,
             "name": cfg["name"],
@@ -581,6 +638,7 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "notes": cfg["notes"],
             "conviction": cfg["conviction"],
             "robinhood": cfg["robinhood"],
+            "tranche_plan": tranche_plan,
         })
 
     # Sort so IN_ZONE and NEAR_ZONE appear at the top
@@ -722,12 +780,20 @@ def build_pretrade_cockpit(
         badge_cls = "warn"
         summary = "Market is consolidating. Do not market-buy or chase green candles. Keep resting limit orders parked strictly on designated discount shelves."
 
+    if verdict_status == "GREEN":
+        action_plan = f"RESTING LIMITS AUTHORIZED: Rest 35% scale-in order on {near_str or 'SOL'}. Keep 65% cash in reserve. Never chase green candles."
+    elif verdict_status == "RED":
+        action_plan = "STAND DOWN: High-impact USD or macro hazard. Keep 100% of $5,058 cash dry powder protected."
+    else:
+        action_plan = "PATIENT MONITORING: No A+ trigger inside entry base. Keep limit orders parked on discount shelves."
+
     return {
         "verdict_status": verdict_status,
         "badge": badge,
         "badge_cls": badge_cls,
         "score": score,
         "summary": summary,
+        "action_plan": action_plan,
         "latest_trump_headline": latest_trump_headline,
         "trump_score": trump_score,
         "checkpoints": [

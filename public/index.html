@@ -227,6 +227,50 @@
       70% { box-shadow: 0 0 0 6px rgba(134,239,172,0); }
       100% { box-shadow: 0 0 0 0 rgba(134,239,172,0); }
     }
+
+    /* Action Plan Banner */
+    .action-plan-banner {
+      background: rgba(194,205,148,0.12); border: 1px solid rgba(194,205,148,0.35);
+      border-left: 4px solid var(--olive); border-radius: 12px;
+      padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.5; color: #F3F6EC;
+    }
+    .action-plan-banner b { color: var(--olive); }
+
+    /* Rules Sentry Grid */
+    .rules-sentry-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px;
+      border-top: 1px solid var(--line); padding-top: 10px;
+    }
+    @media (max-width: 768px) { .rules-sentry-grid { grid-template-columns: repeat(2, 1fr); } }
+    .rule-sentry-item {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+      padding: 8px 10px; font-size: 11px; line-height: 1.35; color: var(--muted);
+    }
+    .rule-sentry-item b { color: var(--text); display: block; margin-bottom: 2px; }
+
+    /* Robinhood Order Ticket Modal */
+    .order-ticket {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 12px 14px; margin-bottom: 10px; font-family: var(--mono);
+    }
+    .ticket-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 12px;
+    }
+    .ticket-row:last-child { border-bottom: 0; }
+    .ticket-lbl { color: var(--muted); font-size: 11px; }
+    .ticket-val { font-weight: 700; color: var(--text); }
+
+    /* Movers Strip */
+    .movers-strip {
+      display: flex; gap: 8px; overflow-x: auto; padding: 6px 0 10px; -webkit-overflow-scrolling: touch;
+    }
+    .mover-chip {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+      padding: 5px 12px; font-size: 11.5px; font-family: var(--mono); white-space: nowrap; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease;
+    }
+    .mover-chip:hover { border-color: rgba(194,205,148,0.4); background: rgba(194,205,148,0.08); }
   </style>
 </head>
 <body>
@@ -239,9 +283,15 @@
         <div class="sub" id="updated"><span class="pulse-dot"></span>Live Telemetry · Streaming 3s</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button class="btn" id="btnNotifyToggle" onclick="toggleDesktopNotifications()" style="font-size:11px;padding:6px 10px">
-        <span id="notifyIcon">🔔</span> Desktop Alerts: <span id="notifyStatus">OFF</span>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <button class="btn" id="btnVoiceToggle" onclick="toggleVoiceSquawk()" style="font-size:11px;padding:6px 10px" title="AI Voice Squawk Alerts">
+        <span id="voiceIcon">🗣️</span> Voice: <span id="voiceStatus">OFF</span>
+      </button>
+      <button class="btn" id="btnNotifyToggle" onclick="toggleDesktopNotifications()" style="font-size:11px;padding:6px 10px" title="Desktop Push Notifications">
+        <span id="notifyIcon">🔔</span> Desktop: <span id="notifyStatus">OFF</span>
+      </button>
+      <button class="btn" id="btnTestSound" onclick="testSoundAndVoice()" style="font-size:11px;padding:6px 9px" title="Test Audio Chime & Speech">
+        ⚡ Test
       </button>
       <button class="btn" onclick="refreshAll(true)" aria-label="Refresh">↻ Refresh</button>
     </div>
@@ -266,7 +316,12 @@
         <div class="dim" style="font-size:11px" id="cockpitTime">Pre-Trade Clearance Check</div>
       </div>
 
-      <div style="margin:10px 0 8px;font-size:13.5px;font-weight:600;line-height:1.5;color:#F3F6EC" id="cockpitSummary">
+      <!-- Action Plan Directive -->
+      <div class="action-plan-banner" id="cockpitActionPlan">
+        <b>🎯 Immediate Trading Directive:</b> Analyzing live macro, Trump statements, and support shelves…
+      </div>
+
+      <div style="margin:4px 0 10px;font-size:12.5px;color:var(--muted);line-height:1.4" id="cockpitSummary">
         Analyzing live macro, Trump statements, Forex Factory calendar, and support shelves…
       </div>
 
@@ -275,12 +330,24 @@
         <!-- Rendered via JS -->
       </div>
 
-      <!-- Quick Action Rules -->
-      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line)">
-        <span><b>Strategy:</b> Limit bids resting on discount shelves</span>
-        <span><b>Capital:</b> 35% / 40% / 25% staged scale-in</span>
-        <span><b>Trump/Macro:</b> Statements cooling geopolitical hazard</span>
-        <span><b>Discipline:</b> Never market-buy green candle spikes</span>
+      <!-- CB Discipline Rules Sentry -->
+      <div class="rules-sentry-grid">
+        <div class="rule-sentry-item">
+          <b>🛡️ 1. Discount Shelves Only</b>
+          Rest bids strictly on verified support shelves; never market buy green candles.
+        </div>
+        <div class="rule-sentry-item">
+          <b>🚫 2. Zero Green FOMO</b>
+          Never market-buy breakout spikes without 1H candle confirmation.
+        </div>
+        <div class="rule-sentry-item">
+          <b>📊 3. 3-Tranche Scaling</b>
+          35% initial / 40% dip / 25% wick ($5,058 staged cash allocation).
+        </div>
+        <div class="rule-sentry-item">
+          <b>🛑 4. Hard Stop In Broker</b>
+          Stop limit order entered on Robinhood immediately upon fill.
+        </div>
       </div>
     </div>
 
@@ -388,8 +455,11 @@
       </p>
     </div>
 
-    <!-- Filter Chips -->
+    <!-- Search & Filter Chips -->
     <div class="card" style="padding:10px 14px;margin-bottom:12px">
+      <div style="margin-bottom:8px">
+        <input id="tweetSearch" type="text" placeholder="🔍 Search tweets, Trump statements, tariffs, VIP alpha (Saylor/Musk)..." oninput="renderIntel()" style="font-size:13px;padding:9px 12px">
+      </div>
       <div class="chips" id="intelChips">
         <button class="btn on" onclick="setIntelFilter('all', this)">All Intel (<span id="cntIntel">0</span>)</button>
         <button class="btn" onclick="setIntelFilter('trump', this)">🦅 Trump &amp; Truth Social (<span id="cntTrump">0</span>)</button>
@@ -552,6 +622,8 @@
     </div>
     <div class="card">
       <h2><span>All 84 Robinhood Cryptos <span class="pill live">Verified Tradable</span></span><small id="mktSrc"></small></h2>
+      <!-- Movers Heatmap Strip -->
+      <div class="movers-strip" id="mktMoversStrip"></div>
       <!-- Search Bar -->
       <div style="margin-bottom:10px">
         <input id="mktSearch" type="text" placeholder="🔍 Search all 84 Robinhood coins (e.g. TRUMP, PEPE, SUI, DOGE, SOL, WLFI)..." oninput="renderMarkets()" style="font-size:13px;padding:9px 12px">
@@ -574,8 +646,17 @@
   <!-- ======================= CHART ======================= -->
   <section class="view" id="v-chart">
     <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div class="chips" id="chartIntervalChips">
+          <button class="btn" onclick="setChartInterval('15', this)">15m</button>
+          <button class="btn on" onclick="setChartInterval('60', this)">1H</button>
+          <button class="btn" onclick="setChartInterval('240', this)">4H</button>
+          <button class="btn" onclick="setChartInterval('D', this)">Daily</button>
+        </div>
+        <div class="dim" style="font-size:11px">TradingView Live Chart</div>
+      </div>
       <div class="chips" id="chartChips" style="margin-bottom:10px"></div>
-      <div id="tvChart" style="height:70vh;min-height:420px;border-radius:12px;overflow:hidden;background:var(--surface)"></div>
+      <div id="tvChart" style="height:70vh;min-height:450px;border-radius:12px;overflow:hidden;background:var(--surface)"></div>
     </div>
   </section>
 
@@ -607,6 +688,18 @@
       <button class="btn primary" value="save">Save</button>
     </div>
   </form>
+</dialog>
+
+<!-- Robinhood Order Slip Dialog -->
+<dialog id="orderSlipDlg">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px">
+    <div>
+      <span class="pill live" style="font-size:11px">ROBINHOOD ORDER SLIP</span>
+      <b style="font-size:16px;margin-left:6px" id="slipCoin">SOL</b>
+    </div>
+    <button class="btn ghost" onclick="$('orderSlipDlg').close()" style="padding:4px 8px;font-size:13px">✕</button>
+  </div>
+  <div id="slipBody"></div>
 </dialog>
 
 <script>
@@ -671,6 +764,7 @@ function go(v) {
 let callouts = [];
 let signalFilter = 'all';
 let audioAlertEnabled = store.get('cbr_audio_alert', false);
+let voiceSquawkEnabled = store.get('cbr_voice_squawk', false);
 let desktopNotificationsEnabled = store.get('cbr_desktop_notify', false);
 let lastChimedSymbol = null;
 let lastNotifiedTrumpTitle = null;
@@ -683,6 +777,13 @@ function updateAudioUI() {
   if (ico) ico.textContent = audioAlertEnabled ? '🔔' : '🔇';
   if (st) st.textContent = audioAlertEnabled ? 'ON' : 'OFF';
   if (btn) btn.className = 'btn ' + (audioAlertEnabled ? 'primary' : '');
+}
+
+function updateVoiceUI() {
+  const ico = $('voiceIcon'), st = $('voiceStatus'), btn = $('btnVoiceToggle');
+  if (ico) ico.textContent = voiceSquawkEnabled ? '🗣️' : '🔇';
+  if (st) st.textContent = voiceSquawkEnabled ? 'ON' : 'OFF';
+  if (btn) btn.className = 'btn ' + (voiceSquawkEnabled ? 'primary' : '');
 }
 
 function updateNotifyUI() {
@@ -698,6 +799,38 @@ function toggleAudioAlert() {
   updateAudioUI();
   if (audioAlertEnabled) {
     playSignalChime();
+  }
+}
+
+function toggleVoiceSquawk() {
+  voiceSquawkEnabled = !voiceSquawkEnabled;
+  store.set('cbr_voice_squawk', voiceSquawkEnabled);
+  updateVoiceUI();
+  if (voiceSquawkEnabled) {
+    speakText("Voice squawk activated. Monitoring buy shelves and Trump statements.");
+  }
+}
+
+function speakText(text) {
+  if (!voiceSquawkEnabled || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.05;
+    u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+function testSoundAndVoice() {
+  playSignalChime();
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance("CB Cockpit telemetry online. All eighty-four markets streaming live.");
+      u.rate = 1.05;
+      window.speechSynthesis.speak(u);
+    } catch(e) {}
   }
 }
 
@@ -723,7 +856,7 @@ async function toggleDesktopNotifications() {
   updateNotifyUI();
 }
 
-function sendDesktopAlert(title, body) {
+function sendDesktopAlert(title, body, speakMsg) {
   if (desktopNotificationsEnabled && ("Notification" in window) && Notification.permission === "granted") {
     try {
       new Notification(title, { body, icon: "/icon-192.png" });
@@ -731,6 +864,9 @@ function sendDesktopAlert(title, body) {
   }
   if (audioAlertEnabled) {
     playSignalChime();
+  }
+  if (voiceSquawkEnabled && speakMsg) {
+    speakText(speakMsg);
   }
 }
 
@@ -779,6 +915,9 @@ function renderCockpit() {
   if ($('cockpitScore')) {
     $('cockpitScore').textContent = `Posture Score: ${c.score}/100 · ${c.verdict_status === 'GREEN' ? 'Favorable Risk-On' : (c.verdict_status === 'RED' ? 'High Risk' : 'Caution / Range')}`;
   }
+  if ($('cockpitActionPlan')) {
+    $('cockpitActionPlan').innerHTML = `<b>🎯 Immediate Trading Directive:</b> ${esc(c.action_plan || c.summary)}`;
+  }
   if ($('cockpitSummary')) {
     $('cockpitSummary').textContent = c.summary;
   }
@@ -807,6 +946,12 @@ function setIntelFilter(filter, btn) {
   renderIntel();
 }
 
+function copyTweetText(title) {
+  navigator.clipboard.writeText(title).then(() => {
+    alert("Copied post headline to clipboard!");
+  }).catch(() => {});
+}
+
 function renderIntel() {
   if (!socialIntel.length) {
     if ($('intelList')) $('intelList').innerHTML = '<div class="empty">Scanning live Trump statements & VIP social feeds…</div>';
@@ -829,8 +974,13 @@ function renderIntel() {
     list = list.filter(s => s.source_type === 'BREAKING');
   }
 
+  const query = ($('tweetSearch')?.value || '').trim().toLowerCase();
+  if (query) {
+    list = list.filter(s => (s.title && s.title.toLowerCase().includes(query)) || (s.author && s.author.toLowerCase().includes(query)) || (s.takeaway && s.takeaway.toLowerCase().includes(query)));
+  }
+
   if (!list.length) {
-    if ($('intelList')) $('intelList').innerHTML = '<div class="empty">No intel items found for this filter. Switch to "All Intel".</div>';
+    if ($('intelList')) $('intelList').innerHTML = `<div class="empty">No intel items found for "${esc(query || intelFilter)}". Switch filter or clear search.</div>`;
     return;
   }
 
@@ -864,6 +1014,10 @@ function renderIntel() {
             </a>
           </div>
           ${item.takeaway ? `<div class="tweet-takeaway">💡 <b>Trader Takeaway:</b> ${esc(item.takeaway)}</div>` : ''}
+          <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
+            <button class="btn" style="padding:2px 8px;font-size:10.5px" onclick="copyTweetText('${esc(item.title)}')">📋 Copy</button>
+            <a href="${esc(item.link)}" target="_blank" rel="noopener noreferrer" class="btn" style="padding:2px 8px;font-size:10.5px;text-decoration:none">↗ Open Source</a>
+          </div>
         </div>
       `;
     }).join('');
@@ -875,7 +1029,11 @@ function checkIntelNotifications() {
   const topTrump = socialIntel.find(s => s.source_type === 'TRUMP');
   if (topTrump && topTrump.title !== lastNotifiedTrumpTitle) {
     if (lastNotifiedTrumpTitle !== null) {
-      sendDesktopAlert("🦅 Breaking Trump Intel Alert", `${topTrump.title} (${topTrump.sentiment})`);
+      sendDesktopAlert(
+        "🦅 Breaking Trump Intel Alert",
+        `${topTrump.title} (${topTrump.sentiment})`,
+        `Breaking Trump Intel: ${topTrump.title}`
+      );
     }
     lastNotifiedTrumpTitle = topTrump.title;
   }
@@ -885,7 +1043,11 @@ function checkAudioAlert() {
   const inZone = callouts.find(c => c.status === 'IN_ZONE');
   if (inZone && inZone.symbol !== lastChimedSymbol) {
     lastChimedSymbol = inZone.symbol;
-    sendDesktopAlert(`🎯 Buy Zone Trigger: ${inZone.symbol}`, `${inZone.symbol} is inside optimal entry shelf (${px(inZone.entry_low)} - ${px(inZone.entry_high)})!`);
+    sendDesktopAlert(
+      `🎯 Buy Zone Trigger: ${inZone.symbol}`,
+      `${inZone.symbol} is inside optimal entry shelf (${px(inZone.entry_low)} - ${px(inZone.entry_high)})!`,
+      `Alert. ${inZone.name} is now inside optimal buy shelf.`
+    );
   } else if (!inZone) {
     lastChimedSymbol = null;
   }
@@ -1031,13 +1193,167 @@ function renderSignals() {
 
         <!-- Actions -->
         <div class="signal-actions">
-          <button class="btn" onclick="copyOrderDetails('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1})">📋 Copy Plan</button>
+          <button class="btn primary" onclick="openOrderSlip('${esc(c.symbol)}')">📋 Robinhood Order Slip</button>
           <button class="btn" onclick="go('chart');loadChart('${esc(c.symbol in CHARTS ? c.symbol : 'HYPE')}');">📈 Chart</button>
-          <button class="btn primary" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1}, ${c.target_2})">💰 Size Entry ($5k Reserve)</button>
+          <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1}, ${c.target_2})">💰 Sizer</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+function openOrderSlip(sym) {
+  const c = callouts.find(x => x.symbol === sym) || dash?.markets?.find(m => m.symbol === sym);
+  if (!c) return;
+  const tp = c.tranche_plan || {
+    tranche_1: { pct: 35, usd: 1770.30, price: c.entry_high || c.price, tokens: (1770.30 / (c.entry_high || c.price)).toFixed(c.price < 1 ? 4 : 2) },
+    tranche_2: { pct: 40, usd: 2023.20, price: c.entry_low || (c.price * 0.98), tokens: (2023.20 / (c.entry_low || (c.price * 0.98))).toFixed(c.price < 1 ? 4 : 2) },
+    tranche_3: { pct: 25, usd: 1264.50, price: (c.entry_low ? c.entry_low * 0.98 : c.price * 0.96), tokens: (1264.50 / (c.entry_low ? c.entry_low * 0.98 : c.price * 0.96)).toFixed(c.price < 1 ? 4 : 2) },
+    blended_avg: c.entry_high || c.price,
+    stop_loss: c.stop_loss || (c.price * 0.94),
+    downside_loss: 140.00,
+    risk_pct: 2.8,
+    target_1: c.target_1 || (c.price * 1.15),
+    target_2: c.target_2 || (c.price * 1.30),
+    total_tokens: 0
+  };
+
+  const t1 = tp.tranche_1, t2 = tp.tranche_2, t3 = tp.tranche_3;
+  $('slipCoin').textContent = `${c.symbol} · ${c.name || c.symbol}`;
+  $('slipBody').innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+      Staged 3-tranche order execution plan for Charles's <b>$5,058.00</b> dry powder reserve.
+    </div>
+
+    <div class="order-ticket">
+      <div class="ticket-row">
+        <span class="ticket-lbl">Asset</span>
+        <span class="ticket-val" style="color:var(--olive)">${esc(c.symbol)} (${esc(c.name || c.symbol)})</span>
+      </div>
+      <div class="ticket-row">
+        <span class="ticket-lbl">Current Market Price</span>
+        <span class="ticket-val">${px(c.price)} <span class="${cls(c.change_24h)}" style="font-size:11px">${pct(c.change_24h, 1)}</span></span>
+      </div>
+      <div class="ticket-row">
+        <span class="ticket-lbl">Setup Type</span>
+        <span class="ticket-val">${esc(c.setup_type || 'Support Retest Accumulation')}</span>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:800;color:var(--olive);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em">
+      Staged Robinhood Order Steps:
+    </div>
+
+    <div class="order-ticket">
+      <div class="ticket-row">
+        <div>
+          <b style="color:var(--text)">1. Limit Buy · Tranche 1 (35%)</b>
+          <div class="dim" style="font-size:10.5px">Initial shelf contact bid</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--green);font-weight:700">${usd(t1.usd)} (${t1.tokens} ${esc(c.symbol)})</div>
+          <div class="dim" style="font-size:11px">@ <b>${px(t1.price)}</b></div>
+        </div>
+      </div>
+
+      <div class="ticket-row">
+        <div>
+          <b style="color:var(--text)">2. Limit Buy · Tranche 2 (40%)</b>
+          <div class="dim" style="font-size:10.5px">Mid-shelf discount bid</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--green);font-weight:700">${usd(t2.usd)} (${t2.tokens} ${esc(c.symbol)})</div>
+          <div class="dim" style="font-size:11px">@ <b>${px(t2.price)}</b></div>
+        </div>
+      </div>
+
+      <div class="ticket-row">
+        <div>
+          <b style="color:var(--text)">3. Limit Buy · Tranche 3 (25%)</b>
+          <div class="dim" style="font-size:10.5px">Wick liquidity bottom bid</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--green);font-weight:700">${usd(t3.usd)} (${t3.tokens} ${esc(c.symbol)})</div>
+          <div class="dim" style="font-size:11px">@ <b>${px(t3.price)}</b></div>
+        </div>
+      </div>
+
+      <div class="ticket-row" style="background:rgba(194,205,148,0.06);border-radius:6px;padding:8px 6px">
+        <span class="ticket-lbl" style="font-weight:700;color:var(--text)">Blended Avg Cost</span>
+        <span class="ticket-val" style="color:var(--olive)">${px(tp.blended_avg)} (${tp.total_tokens || (Number(t1.tokens)+Number(t2.tokens)+Number(t3.tokens)).toFixed(2)} tokens)</span>
+      </div>
+
+      <div class="ticket-row">
+        <div>
+          <b style="color:var(--red)">4. Hard Stop Loss Order</b>
+          <div class="dim" style="font-size:10.5px">Stop Limit order placed immediately</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--red);font-weight:700">@ ${px(c.stop_loss || tp.stop_loss)}</div>
+          <div class="dim" style="font-size:11px">Max risk: -${usd(tp.downside_loss)} (${tp.risk_pct}%)</div>
+        </div>
+      </div>
+
+      <div class="ticket-row">
+        <div>
+          <b style="color:var(--green)">5. Take Profit Targets (50% / 50%)</b>
+          <div class="dim" style="font-size:10.5px">T1 &amp; T2 scale out</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--green);font-weight:700">${px(c.target_1 || tp.target_1)} / ${px(c.target_2 || tp.target_2)}</div>
+          <div class="dim" style="font-size:11px">${c.rr_ratio || '3.5'}:1 R:R</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high || c.price}, ${c.stop_loss || c.price*0.95}, ${c.target_1 || c.price*1.15}, ${c.target_2 || c.price*1.25});$('orderSlipDlg').close()">💰 Custom Sizer</button>
+      <button class="btn primary" onclick="copyRobinhoodSlip('${esc(c.symbol)}')">📋 Copy Ticket</button>
+    </div>
+  `;
+  $('orderSlipDlg').showModal();
+}
+
+function copyRobinhoodSlip(sym) {
+  const c = callouts.find(x => x.symbol === sym) || dash?.markets?.find(m => m.symbol === sym);
+  if (!c) return;
+  const tp = c.tranche_plan || {};
+  const t1 = tp.tranche_1 || { usd: 1770.30, price: c.entry_high || c.price, tokens: 0 };
+  const t2 = tp.tranche_2 || { usd: 2023.20, price: (c.entry_low + c.entry_high)/2 || c.price, tokens: 0 };
+  const t3 = tp.tranche_3 || { usd: 1264.50, price: c.entry_low || c.price, tokens: 0 };
+
+  const text = `CB TRADING · ROBINHOOD ORDER TICKET
+Asset: ${c.symbol} (${c.name || c.symbol})
+Dry Powder: $5,058.00 Cash Reserve
+
+1. ORDER 1 (Limit Buy - 35%):
+   Amount: $1,770.30 (${t1.tokens} ${c.symbol})
+   Limit Price: ${px(t1.price)}
+
+2. ORDER 2 (Limit Buy - 40%):
+   Amount: $2,023.20 (${t2.tokens} ${c.symbol})
+   Limit Price: ${px(t2.price)}
+
+3. ORDER 3 (Limit Buy - 25%):
+   Amount: $1,264.50 (${t3.tokens} ${c.symbol})
+   Limit Price: ${px(t3.price)}
+
+Blended Avg Entry: ${px(tp.blended_avg || c.price)}
+
+4. HARD STOP LOSS:
+   Type: Stop Limit
+   Stop Price: ${px(c.stop_loss || tp.stop_loss)}
+   Max Risk: -$${tp.downside_loss || 140} (${tp.risk_pct || 2.8}% of bankroll)
+
+5. TARGETS:
+   Target 1 (50% exit): ${px(c.target_1 || tp.target_1)}
+   Target 2 (50% exit): ${px(c.target_2 || tp.target_2)}`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`Copied ${c.symbol} Robinhood Order Ticket to clipboard!`);
+  }).catch(() => {
+    alert(text);
+  });
 }
 
 function copyOrderDetails(sym, entry, stop, t1) {
@@ -1305,14 +1621,42 @@ function renderMarkets() {
   $('gainers').innerHTML = movers(dash?.movers?.up || []);
   $('losers').innerHTML = movers(dash?.movers?.down || []);
 
-  const sectors = ['All', '🔥 High Risk', ...new Set(mk.map(m => m.sector))];
+  // Top Movers Heatmap Strip
+  if ($('mktMoversStrip')) {
+    const upMovers = (dash?.movers?.up || []).slice(0, 4);
+    const downMovers = (dash?.movers?.down || []).slice(0, 4);
+    const gPills = upMovers.map(m => `<div class="mover-chip" onclick="go('chart');loadChart('${esc(m.symbol)}')"><span class="up">▲ ${esc(m.symbol)}</span> <span>${px(m.price)}</span> <span class="up">${pct(m.change_24h, 1)}</span></div>`).join('');
+    const dPills = downMovers.map(m => `<div class="mover-chip" onclick="openOrderSlip('${esc(m.symbol)}')"><span class="down">▼ ${esc(m.symbol)}</span> <span>${px(m.price)}</span> <span class="down">${pct(m.change_24h, 1)}</span></div>`).join('');
+    $('mktMoversStrip').innerHTML = gPills + dPills;
+  }
+
+  const sectors = [
+    'All',
+    '🔥 Memes & High Beta',
+    '💎 Top Ecosystems',
+    '🏛️ DeFi & Blue Chips',
+    '🤖 AI & Compute',
+    '🇺🇸 Trump & PolitiFi'
+  ];
   $('sectorChips').innerHTML = sectors.map(s => `<button class="btn${s === sector ? ' on' : ''}" onclick="sector='${esc(s)}';renderMarkets()">${esc(s)}</button>`).join('');
+
   let rows;
   if (sector === 'All') {
     rows = mk.slice();
-  } else if (sector === '🔥 High Risk') {
-    const highRiskSymbols = ['SUI', 'NEAR', 'AVAX', 'AAVE', 'AERO', 'CRV', 'SYRUP', 'RAY', 'ORCA', 'JTO', 'BONK', 'WIF', 'PEPE', 'SHIB', 'DOGE', 'RENDER', 'FET'];
-    rows = mk.filter(m => m.sector === 'Memes' || m.sector === 'AI & Data' || m.sector === 'Perp DEX & L1' || highRiskSymbols.includes(m.symbol));
+  } else if (sector === '🔥 Memes & High Beta') {
+    const memeSyms = ['PEPE','DOGE','SHIB','BONK','WIF','FLOKI','PENGU','POPCAT','MEW','MOODENG','PNUT','CASHCAT'];
+    rows = mk.filter(m => m.sector === 'Memes' || memeSyms.includes(m.symbol));
+  } else if (sector === '💎 Top Ecosystems') {
+    const ecoSyms = ['SOL','SUI','NEAR','AVAX','ADA','SEI','HBAR','ARB','OP','STRK','MNT','ATOM','ALGO'];
+    rows = mk.filter(m => m.sector === 'Layer 1 / 2' || ecoSyms.includes(m.symbol));
+  } else if (sector === '🏛️ DeFi & Blue Chips') {
+    const defiSyms = ['BTC','ETH','XRP','BNB','AAVE','UNI','CRV','COMP','LDO','LINK','QNT','AERO','ENA','ONDO'];
+    rows = mk.filter(m => m.sector === 'DeFi' || m.sector === 'Mega Caps' || defiSyms.includes(m.symbol));
+  } else if (sector === '🤖 AI & Compute') {
+    const aiSyms = ['RENDER','FET','VIRTUAL','WLD','VVV','BIO','SENT'];
+    rows = mk.filter(m => m.sector === 'AI & Data' || aiSyms.includes(m.symbol));
+  } else if (sector === '🇺🇸 Trump & PolitiFi') {
+    rows = mk.filter(m => ['TRUMP','WLFI'].includes(m.symbol));
   } else {
     rows = mk.filter(m => m.sector === sector);
   }
@@ -1324,7 +1668,7 @@ function renderMarkets() {
 
   rows.sort((a, b) => ((a[sortKey] ?? -Infinity) > (b[sortKey] ?? -Infinity) ? 1 : -1) * sortDir);
   const th = (k, label, num) => `<th class="${num ? 'num' : ''}" onclick="sortBy('${k}')">${label}${sortKey === k ? (sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
-  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>24h range</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}${th('news_tone', 'News tone', 1)}<th style="width:40px"></th></tr></thead><tbody>` +
+  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>24h range</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}${th('news_tone', 'News tone', 1)}<th style="width:70px"></th></tr></thead><tbody>` +
     (rows.length ? rows.map(m => `<tr>
       <td><div class="coin">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy">` : ''}<b>${esc(m.symbol)}</b> <span class="dim" style="font-size:11px">${esc(m.name || '')}</span></div></td>
       <td class="num">${px(m.price)}</td>
@@ -1334,7 +1678,10 @@ function renderMarkets() {
       <td class="num">${compact(m.volume_24h)}</td>
       <td class="num">${compact(m.market_cap)}</td>
       <td class="num ${cls(m.news_tone)}">${m.news_tone != null ? (m.news_tone > 0 ? '+' : '') + m.news_tone + ` <span class="dim">(${m.news_mentions})</span>` : '<span class="dim">—</span>'}</td>
-      <td style="text-align:right"><button class="btn" style="padding:2px 8px;font-size:11px" onclick="go('chart');loadChart('${esc(m.symbol)}')" title="Open TradingView Chart">📈</button></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn" style="padding:2px 7px;font-size:11px" onclick="go('chart');loadChart('${esc(m.symbol)}')" title="Open TradingView Chart">📈</button>
+        <button class="btn primary" style="padding:2px 7px;font-size:11px" onclick="openOrderSlip('${esc(m.symbol)}')" title="Robinhood Order Slip">📋</button>
+      </td>
     </tr>`).join('') : `<tr><td colspan="9"><div class="empty">${errs.dash ? 'Market data unavailable.' : (query ? 'No coins matching "' + esc(query) + '"' : 'Loading…')}</div></td></tr>`) + '</tbody>';
 }
 function sortBy(k) { sortDir = sortKey === k ? -sortDir : (k === 'symbol' ? 1 : -1); sortKey = k; renderMarkets(); }
@@ -1457,17 +1804,30 @@ const CHARTS = {
   RENDER: 'BINANCE:RENDERUSDT',
   NVDA: 'NASDAQ:NVDA'
 };
+let chartInterval = store.get('cbr_chart_int', '60');
+
+function setChartInterval(intVal, btn) {
+  chartInterval = intVal;
+  store.set('cbr_chart_int', intVal);
+  document.querySelectorAll('#chartIntervalChips button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  loadChart(store.get('cbr_chart', 'HYPE'));
+}
+
 function loadChart(sym) {
   sym = sym ? sym.toUpperCase() : 'HYPE';
   store.set('cbr_chart', sym);
   if (!CHARTS[sym]) {
     CHARTS[sym] = 'BINANCE:' + sym + 'USDT';
   }
-  const topCoins = ['HYPE', 'SOL', 'BTC', 'ETH', 'PEPE', 'WIF', 'BONK', 'SUI', 'NEAR', 'AAVE', 'RENDER', 'DOGE', 'AVAX'];
+  const topCoins = ['HYPE', 'SOL', 'BTC', 'ETH', 'PEPE', 'DOGE', 'SUI', 'NEAR', 'TRUMP', 'AAVE', 'WIF', 'BONK', 'RENDER', 'AVAX'];
   if (!topCoins.includes(sym)) topCoins.unshift(sym);
   $('chartChips').innerHTML = topCoins.map(s => `<button class="btn${s === sym ? ' on' : ''}" onclick="loadChart('${s}')">${s}</button>`).join('');
+  document.querySelectorAll('#chartIntervalChips button').forEach(b => {
+    b.classList.toggle('on', b.textContent === (chartInterval === '15' ? '15m' : chartInterval === '60' ? '1H' : chartInterval === '240' ? '4H' : 'Daily'));
+  });
   const tvSym = CHARTS[sym] || ('BINANCE:' + sym + 'USDT');
-  const src = 'https://s.tradingview.com/widgetembed/?' + new URLSearchParams({ symbol: tvSym, interval: '60', theme: 'dark', style: '1', timezone: 'America/Chicago', hide_side_toolbar: '0', withdateranges: '1', locale: 'en' });
+  const src = 'https://s.tradingview.com/widgetembed/?' + new URLSearchParams({ symbol: tvSym, interval: chartInterval, theme: 'dark', style: '1', timezone: 'America/Chicago', hide_side_toolbar: '0', withdateranges: '1', locale: 'en' });
   $('tvChart').innerHTML = `<iframe title="${esc(sym)} chart" src="${src}" style="width:100%;height:100%;border:0" loading="lazy"></iframe>`;
 }
 
@@ -1481,6 +1841,7 @@ function refreshAll(force) {
 }
 
 updateAudioUI();
+updateVoiceUI();
 updateNotifyUI();
 go(view);
 renderPortfolio();
