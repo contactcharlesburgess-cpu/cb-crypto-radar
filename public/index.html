@@ -271,6 +271,52 @@
       display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease;
     }
     .mover-chip:hover { border-color: rgba(194,205,148,0.4); background: rgba(194,205,148,0.08); }
+
+    /* Beginner Fast-Track HUD */
+    .beginner-hud {
+      background: linear-gradient(135deg, rgba(194,205,148,0.14) 0%, rgba(10,15,10,0.9) 100%);
+      border: 1px solid rgba(194,205,148,0.35); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px;
+    }
+    .beginner-grid {
+      display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 10px; margin-top: 10px;
+    }
+    @media (max-width: 820px) { .beginner-grid { grid-template-columns: 1fr; } }
+    .beginner-box {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+    }
+    .beginner-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Top 3 Dips Showcase */
+    .top-dips-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;
+    }
+    @media (max-width: 768px) { .top-dips-grid { grid-template-columns: 1fr; } }
+    .top-dip-card {
+      background: var(--card); border: 1px solid rgba(194,205,148,0.22); border-radius: 14px; padding: 12px 14px;
+      position: relative; transition: all 0.2s ease;
+    }
+    .top-dip-card:hover { border-color: rgba(194,205,148,0.5); transform: translateY(-2px); }
+    .top-dip-rank {
+      position: absolute; top: 10px; right: 12px; font-size: 9.5px; font-weight: 800; font-family: var(--mono);
+      background: rgba(194,205,148,0.18); color: var(--olive); padding: 2px 7px; border-radius: 6px;
+    }
+    .dip-score-badge {
+      display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 10px; font-weight: 800;
+      padding: 2px 6px; border-radius: 6px; background: rgba(134,239,172,0.15); color: var(--green); border: 1px solid rgba(134,239,172,0.3);
+    }
+
+    /* Phone Step Walkthrough in Modal */
+    .rh-step-box {
+      background: rgba(10,15,10,0.85); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; line-height: 1.45;
+    }
+    .rh-step-box b { color: var(--olive); }
+    .copy-chip {
+      background: rgba(194,205,148,0.15); color: var(--text); border: 1px solid rgba(194,205,148,0.3); border-radius: 6px;
+      padding: 2px 7px; font-family: var(--mono); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
+    }
+    .copy-chip:hover { background: var(--olive); color: #040504; font-weight: 800; }
   </style>
 </head>
 <body>
@@ -372,17 +418,80 @@
       </div>
     </div>
 
-    <!-- Filter Chips -->
-    <div class="card" style="margin-bottom:14px;padding:10px 14px">
+    <!-- 🔰 Beginner Fast-Track HUD -->
+    <div class="beginner-hud" id="beginnerHud">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div class="chips" id="signalChips">
-          <button class="btn on" onclick="setSignalFilter('all', this)">All Setups (<span id="cntAll">8</span>)</button>
-          <button class="btn" onclick="setSignalFilter('zone', this)">🟢 In Buy Zone (<span id="cntZone">0</span>)</button>
-          <button class="btn" onclick="setSignalFilter('near', this)">⏳ Near Entry &lt;2.5% (<span id="cntNear">4</span>)</button>
-          <button class="btn" onclick="setSignalFilter('core', this)">⭐ Core A+ (SOL/HYPE/BTC)</button>
-          <button class="btn" onclick="setSignalFilter('rh', this)">Robinhood Tradable</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="pill live" style="font-size:11px;padding:3px 10px;background:rgba(194,205,148,0.2)">🔰 BEGINNER FAST-TRACK</span>
+          <b style="font-size:14px;color:var(--text)">Simple 3-Step Robinhood Dip Playbook</b>
         </div>
-        <div class="dim" style="font-size:11px" id="signalsUpdated">Streaming 5s live</div>
+        <span class="dim" style="font-size:11px">Zero Guesswork · Plain English</span>
+      </div>
+      <div class="beginner-grid">
+        <div class="beginner-box">
+          <div class="beginner-title">🚦 Permission Right Now</div>
+          <div id="begPermissionBadge" style="font-size:13px;font-weight:800;color:var(--green)">🟢 SAFE TO BUY DIPS</div>
+          <div class="dim" style="font-size:11px;margin-top:4px;line-height:1.4" id="begPermissionDesc">
+            Conditions favorable. Place resting limit orders on dipping coins. Never chase green candles.
+          </div>
+        </div>
+        <div class="beginner-box" style="border-color:rgba(194,205,148,0.35);background:rgba(194,205,148,0.06)">
+          <div class="beginner-title">🏆 #1 Best Dip on Robinhood</div>
+          <div id="begTopPickContent">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b style="font-size:14px;color:var(--olive)" id="begTopSym">SOL (Solana)</b> <span class="mono" id="begTopDist" style="font-size:11px;color:var(--green)">+0.2% to shelf</span></div>
+              <button class="btn primary" id="begTopBtn" style="padding:3px 8px;font-size:11px" onclick="openOrderSlip('SOL')">📋 Copy Order</button>
+            </div>
+            <div class="dim" style="font-size:11px;margin-top:4px" id="begTopAdvice">Set limit buy at $108.50 ($1,770 Tranche 1). Stop at $103.50.</div>
+          </div>
+        </div>
+        <div class="beginner-box">
+          <div class="beginner-title">🛡️ $5,058 Bankroll Shield</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">
+            • <b>35% ($1,770)</b> Tranche 1 Limit<br>
+            • <b>40% ($2,023)</b> Tranche 2 Deep Dip<br>
+            • <b>25% ($1,265)</b> Surprise Wick Cash
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🏆 Top 3 Recommended Dips on Robinhood Right Now -->
+    <div style="margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
+        <span>🏆 TOP 3 DIPS ON ROBINHOOD RIGHT NOW</span>
+        <span class="pill live" style="font-size:9.5px">Highest Rated</span>
+      </div>
+      <span class="dim" style="font-size:11px">Auto-Ranked by Dip Attractiveness</span>
+    </div>
+    <div class="top-dips-grid" id="topDipsGrid">
+      <div class="empty">Scanning best dips…</div>
+    </div>
+
+    <!-- All 84 Robinhood Cryptos Dip Scanner Controls -->
+    <div class="card" style="margin-bottom:14px;padding:12px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div>
+          <b style="font-size:14px;color:var(--text)">🎯 Robinhood Dip Scanner (All 84 Cryptos)</b>
+          <div class="dim" style="font-size:11px">Live active dip entry monitoring across every Robinhood coin</div>
+        </div>
+        <div class="dim" style="font-size:11px" id="signalsUpdated">Streaming live 3s</div>
+      </div>
+      <!-- Search all 84 coins input -->
+      <div style="margin-bottom:10px">
+        <input id="signalSearch" type="text" placeholder="🔍 Search any of 84 Robinhood cryptos (e.g. SOL, DOGE, PEPE, SUI, BTC, WLFI)..." oninput="renderSignals()" style="font-size:13px;padding:9px 12px">
+      </div>
+      <!-- Sector & Status Filter Chips -->
+      <div class="chips" id="signalChips">
+        <button class="btn on" onclick="setSignalFilter('prime', this)">🔥 Prime Dips (<span id="cntNear">4</span>)</button>
+        <button class="btn" onclick="setSignalFilter('zone', this)">🟢 In Buy Zone (<span id="cntZone">0</span>)</button>
+        <button class="btn" onclick="setSignalFilter('core', this)">⭐ Core (SOL/BTC/ETH/DOGE)</button>
+        <button class="btn" onclick="setSignalFilter('all', this)">All 84 Robinhood Coins (<span id="cntAll">84</span>)</button>
+        <button class="btn" onclick="setSignalFilter('memes', this)">🔥 Memes</button>
+        <button class="btn" onclick="setSignalFilter('ai', this)">🤖 AI &amp; Compute</button>
+        <button class="btn" onclick="setSignalFilter('eco', this)">💎 Layer 1/2</button>
+        <button class="btn" onclick="setSignalFilter('defi', this)">🏛️ DeFi</button>
+        <button class="btn" onclick="setSignalFilter('politi', this)">🇺🇸 Trump/PolitiFi</button>
       </div>
     </div>
 
@@ -1072,61 +1181,142 @@ function setSignalFilter(filter, btn) {
   renderSignals();
 }
 
+function copySnippet(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`Copied "${text}" to clipboard!`);
+  }).catch(() => {
+    alert(text);
+  });
+}
+
 function renderSignals() {
   if (!callouts.length) {
-    $('signalsList').innerHTML = '<div class="empty">No active signals found.</div>';
+    $('signalsList').innerHTML = '<div class="empty">Scanning live orderbooks &amp; levels…</div>';
     return;
   }
 
   // Update counts
   const nAll = callouts.length;
   const nZone = callouts.filter(c => c.status === 'IN_ZONE').length;
-  const nNear = callouts.filter(c => c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5)).length;
+  const nNear = callouts.filter(c => c.status === 'NEAR_ZONE' || (c.distance_pct != null && Math.abs(c.distance_pct) <= 2.5)).length;
   if ($('cntAll')) $('cntAll').textContent = nAll;
   if ($('cntZone')) $('cntZone').textContent = nZone;
   if ($('cntNear')) $('cntNear').textContent = nNear;
 
-  // Closest setup summary
-  const sortedByDist = [...callouts].sort((a, b) => {
-    const da = a.distance_pct == null ? 999 : Math.abs(a.distance_pct);
-    const db = b.distance_pct == null ? 999 : Math.abs(b.distance_pct);
-    return da - db;
-  });
-  if (sortedByDist.length && $('closestSetupSummary')) {
-    const top = sortedByDist[0];
-    const distText = top.status === 'IN_ZONE' ? '🟢 IN BUY ZONE NOW' : (top.distance_pct > 0 ? `+${top.distance_pct}% away` : `${top.distance_pct}% under`);
-    $('closestSetupSummary').textContent = `${top.symbol}: ${distText} ($${top.entry_low}–$${top.entry_high})`;
+  // Sort by Dip Score descending for beginner picks
+  const sortedByScore = [...callouts].sort((a, b) => (b.dip_score || 0) - (a.dip_score || 0));
+
+  // 1. Update 🔰 Beginner Fast-Track HUD
+  if ($('begPermissionBadge')) {
+    const verdict = dash?.cockpit?.verdict_status || 'GREEN';
+    if (verdict === 'GREEN') {
+      $('begPermissionBadge').innerHTML = '🟢 SAFE TO BUY DIPS · RESTING LIMITS';
+      $('begPermissionBadge').style.color = 'var(--green)';
+      $('begPermissionDesc').textContent = 'Conditions favorable. Place resting limit orders on dipping coins. Never chase green candles.';
+    } else if (verdict === 'YELLOW') {
+      $('begPermissionBadge').innerHTML = '🟡 CAUTION · DEEP DIPS ONLY';
+      $('begPermissionBadge').style.color = 'var(--amber)';
+      $('begPermissionDesc').textContent = 'Market consolidating. Only buy on deep support shelves. Avoid green breakout spikes.';
+    } else {
+      $('begPermissionBadge').innerHTML = '🔴 STAND DOWN · PROTECT CASH';
+      $('begPermissionBadge').style.color = 'var(--red)';
+      $('begPermissionDesc').textContent = 'Economic hazard or heavy volatility. Keep 100% of $5,058 protected in cash.';
+    }
   }
 
-  // Filter list
+  // #1 Best Dip on Robinhood
+  const top1 = sortedByScore[0] || callouts[0];
+  if (top1 && $('begTopSym')) {
+    $('begTopSym').textContent = `${top1.symbol} (${top1.name || top1.symbol})`;
+    const distText = top1.status === 'IN_ZONE' ? '🟢 In Buy Zone Now' : (top1.distance_pct != null && top1.distance_pct > 0 ? `+${top1.distance_pct}% to shelf` : `${top1.distance_pct || 0}% below`);
+    $('begTopDist').textContent = distText;
+    $('begTopDist').style.color = top1.status === 'IN_ZONE' ? 'var(--green)' : 'var(--olive)';
+    $('begTopAdvice').textContent = `Set limit buy at ${px(top1.entry_high)} ($1,770 Tranche 1). Stop at ${px(top1.stop_loss)}.`;
+    if ($('begTopBtn')) $('begTopBtn').setAttribute('onclick', `openOrderSlip('${top1.symbol}')`);
+  }
+
+  // 2. Render 🏆 Top 3 Dips on Robinhood Right Now Showcase
+  if ($('topDipsGrid')) {
+    const medals = ['🥇 #1 BEST DIP', '🥈 #2 BEST DIP', '🥉 #3 BEST DIP'];
+    const top3 = sortedByScore.slice(0, 3);
+    $('topDipsGrid').innerHTML = top3.map((c, i) => {
+      const isZone = c.status === 'IN_ZONE';
+      const distLabel = isZone ? '🟢 In Zone Now' : (c.distance_pct != null && c.distance_pct > 0 ? `+${c.distance_pct}% away` : `${c.distance_pct || 0}%`);
+      return `
+        <div class="top-dip-card">
+          <span class="top-dip-rank">${medals[i]}</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:15px;font-weight:800;color:var(--text)">${esc(c.symbol)}</span>
+            <span class="dim" style="font-size:11px">${esc(c.name || c.symbol)}</span>
+            <span class="dip-score-badge">Score: ${c.dip_score || 85}/100</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+            <div style="font-family:var(--mono);font-size:16px;font-weight:800;color:var(--text)">
+              ${px(c.price)}
+              <span class="${cls(c.change_24h)}" style="font-size:11.5px;margin-left:4px">${pct(c.change_24h, 1)}</span>
+            </div>
+            <span class="pill ${esc(c.badge_cls || 'muted')}" style="font-size:10px">${distLabel}</span>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;line-height:1.5">
+            <div><span class="dim">Buy Shelf:</span> <b style="color:var(--olive)">${px(c.entry_low)} – ${px(c.entry_high)}</b></div>
+            <div><span class="dim">Stop Loss:</span> <b style="color:var(--red)">${px(c.stop_loss)}</b> <span class="dim">(-$${c.tranche_plan?.downside_loss || 140})</span></div>
+          </div>
+          <button class="btn primary" style="width:100%;padding:7px;font-size:11.5px;font-weight:800" onclick="openOrderSlip('${esc(c.symbol)}')">
+            📋 Robinhood Order Ticket
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 3. Filter and Search list
   let list = callouts.slice();
   if (signalFilter === 'zone') {
     list = list.filter(c => c.status === 'IN_ZONE');
-  } else if (signalFilter === 'near') {
-    list = list.filter(c => c.status === 'IN_ZONE' || c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5));
+  } else if (signalFilter === 'prime') {
+    list = list.filter(c => c.status === 'IN_ZONE' || (c.distance_pct != null && Math.abs(c.distance_pct) <= 2.5));
   } else if (signalFilter === 'core') {
-    list = list.filter(c => ['SOL', 'HYPE', 'BTC'].includes(c.symbol));
-  } else if (signalFilter === 'rh') {
-    list = list.filter(c => c.robinhood);
+    list = list.filter(c => ['SOL', 'BTC', 'ETH', 'DOGE', 'TRUMP', 'HYPE', 'PEPE'].includes(c.symbol));
+  } else if (signalFilter === 'memes') {
+    const memeSyms = ['PEPE','DOGE','SHIB','BONK','WIF','FLOKI','PENGU','POPCAT','MEW','MOODENG','PNUT','CASHCAT'];
+    list = list.filter(c => c.sector === 'Memes' || memeSyms.includes(c.symbol));
+  } else if (signalFilter === 'ai') {
+    const aiSyms = ['RENDER','FET','VIRTUAL','WLD','VVV','BIO','SENT','NEAR'];
+    list = list.filter(c => c.sector === 'AI & Data' || aiSyms.includes(c.symbol));
+  } else if (signalFilter === 'eco') {
+    const ecoSyms = ['SOL','SUI','NEAR','AVAX','ADA','SEI','HBAR','ARB','OP','STRK','MNT','ATOM','ALGO'];
+    list = list.filter(c => c.sector === 'Layer 1 / 2' || ecoSyms.includes(c.symbol));
+  } else if (signalFilter === 'defi') {
+    const defiSyms = ['BTC','ETH','XRP','BNB','AAVE','UNI','CRV','COMP','LDO','LINK','QNT','AERO','ENA','ONDO'];
+    list = list.filter(c => c.sector === 'DeFi' || defiSyms.includes(c.symbol));
+  } else if (signalFilter === 'politi') {
+    list = list.filter(c => ['TRUMP','WLFI'].includes(c.symbol));
   }
 
-  // Sort list: IN_ZONE first, then nearest distance
+  const query = ($('signalSearch')?.value || '').trim().toLowerCase();
+  if (query) {
+    list = list.filter(c => (c.symbol && c.symbol.toLowerCase().includes(query)) || (c.name && c.name.toLowerCase().includes(query)) || (c.sector && c.sector.toLowerCase().includes(query)));
+  }
+
+  // Sort list: IN_ZONE first, then by dip_score descending, then nearest distance
   list.sort((a, b) => {
     if (a.status === 'IN_ZONE' && b.status !== 'IN_ZONE') return -1;
     if (b.status === 'IN_ZONE' && a.status !== 'IN_ZONE') return 1;
+    const scoreDiff = (b.dip_score || 0) - (a.dip_score || 0);
+    if (scoreDiff !== 0) return scoreDiff;
     const da = a.distance_pct == null ? 999 : Math.abs(a.distance_pct);
     const db = b.distance_pct == null ? 999 : Math.abs(b.distance_pct);
     return da - db;
   });
 
   if (!list.length) {
-    $('signalsList').innerHTML = `<div class="empty">No setups matching this filter. Switch to "All Setups" to view all ${callouts.length} coins.</div>`;
+    $('signalsList').innerHTML = `<div class="empty">No setups matching this filter. Switch to "All 84 Robinhood Coins" or clear search.</div>`;
     return;
   }
 
   $('signalsList').innerHTML = list.map(c => {
     const isZone = c.status === 'IN_ZONE';
-    const isNear = c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5);
+    const isNear = c.status === 'NEAR_ZONE' || (c.distance_pct != null && Math.abs(c.distance_pct) <= 2.5);
     const cardCls = isZone ? 'signal-card in-zone' : (isNear ? 'signal-card near-zone' : 'signal-card');
 
     let distFillPct = 15;
@@ -1134,7 +1324,7 @@ function renderSignals() {
     if (isZone) { distFillPct = 100; distColor = 'var(--green)'; }
     else if (c.distance_pct != null) {
       distFillPct = Math.max(10, Math.min(100, Math.round(100 - (Math.abs(c.distance_pct) * 8))));
-      distColor = c.distance_pct <= 2.5 ? 'var(--amber)' : 'var(--olive)';
+      distColor = Math.abs(c.distance_pct) <= 2.5 ? 'var(--amber)' : 'var(--olive)';
     }
 
     return `
@@ -1143,8 +1333,8 @@ function renderSignals() {
           <div class="signal-sym-block">
             <span class="signal-sym">${esc(c.symbol)}</span>
             <div>
-              <div style="font-weight:700;font-size:13px">${esc(c.name)} <span class="dim" style="font-size:11px">· ${esc(c.sector)}</span></div>
-              <div class="dim" style="font-size:11px">${c.robinhood ? '🟢 Robinhood Crypto tradable' : 'Perp / DEX only'} · Conviction: <b style="color:var(--text)">${esc(c.conviction)}</b></div>
+              <div style="font-weight:700;font-size:13px">${esc(c.name || c.symbol)} <span class="dim" style="font-size:11px">· ${esc(c.sector)}</span></div>
+              <div class="dim" style="font-size:11px">🟢 Robinhood Tradable · Dip Score: <b style="color:var(--text)">${c.dip_score || 70}/100</b> · Conviction: <b style="color:var(--text)">${esc(c.conviction || 'HIGH')}</b></div>
             </div>
           </div>
           <div style="text-align:right">
@@ -1221,24 +1411,80 @@ function openOrderSlip(sym) {
   const t1 = tp.tranche_1, t2 = tp.tranche_2, t3 = tp.tranche_3;
   $('slipCoin').textContent = `${c.symbol} · ${c.name || c.symbol}`;
   $('slipBody').innerHTML = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
       Staged 3-tranche order execution plan for Charles's <b>$5,058.00</b> dry powder reserve.
     </div>
 
+    <!-- Phone App Step-by-Step Instructions -->
+    <div style="font-size:11px;font-weight:800;color:var(--olive);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">
+      📱 Follow These Steps in the Robinhood Phone App:
+    </div>
+
+    <div class="rh-step-box">
+      <b>1️⃣ Open Robinhood:</b> Search for <b>${esc(c.symbol)}</b>.
+    </div>
+
+    <div class="rh-step-box">
+      <b>2️⃣ Switch Order Type:</b> Tap <b>Trade</b> ➔ <b>Buy</b> ➔ tap <b>"Dollars"</b> in the top right ➔ select <b>Limit Order</b>.
+    </div>
+
+    <div class="rh-step-box">
+      <b>3️⃣ Set Limit Price:</b> Enter <b>${px(t1.price)}</b>
+      <span class="copy-chip" onclick="copySnippet('${t1.price}')">📋 Copy Price</span>
+    </div>
+
+    <div class="rh-step-box">
+      <b>4️⃣ Set Dollar Amount:</b> Enter <b>$1,770.30</b> (Tranche 1 · 35%)
+      <span class="copy-chip" onclick="copySnippet('1770.30')">📋 Copy Amount</span>
+      <div class="dim" style="font-size:10.5px;margin-top:2px">Yields approx <b>${t1.tokens} ${esc(c.symbol)}</b> tokens.</div>
+    </div>
+
+    <div class="rh-step-box">
+      <b>5️⃣ Review &amp; Submit:</b> Swipe up to place order. Wait for price to dip into your shelf.
+    </div>
+
+    <div class="rh-step-box" style="border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06)">
+      <b style="color:var(--red)">🛡️ 6️⃣ Set Stop Loss Immediately Once Filled:</b><br>
+      Tap <b>Trade</b> ➔ <b>Sell</b> ➔ <b>Stop Limit Order</b> ➔ Set Stop to <b>${px(c.stop_loss || tp.stop_loss)}</b>
+      <span class="copy-chip" onclick="copySnippet('${c.stop_loss || tp.stop_loss}')">📋 Copy Stop</span>
+      <div class="dim" style="font-size:10.5px;margin-top:2px">Caps max risk to -$${tp.downside_loss || 140} (${tp.risk_pct || 2.8}% of account).</div>
+    </div>
+
+    <!-- Ticket Summary -->
+    <div style="font-size:11px;font-weight:800;color:var(--muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em">
+      Order Ticket Summary:
+    </div>
+
     <div class="order-ticket">
-      <div class="ticket-row">
-        <span class="ticket-lbl">Asset</span>
-        <span class="ticket-val" style="color:var(--olive)">${esc(c.symbol)} (${esc(c.name || c.symbol)})</span>
-      </div>
       <div class="ticket-row">
         <span class="ticket-lbl">Current Market Price</span>
         <span class="ticket-val">${px(c.price)} <span class="${cls(c.change_24h)}" style="font-size:11px">${pct(c.change_24h, 1)}</span></span>
       </div>
       <div class="ticket-row">
-        <span class="ticket-lbl">Setup Type</span>
-        <span class="ticket-val">${esc(c.setup_type || 'Support Retest Accumulation')}</span>
+        <span class="ticket-lbl">Tranche 2 (If it dips lower)</span>
+        <span class="ticket-val" style="color:var(--green)">$2,023.20 @ ${px(t2.price)}</span>
+      </div>
+      <div class="ticket-row">
+        <span class="ticket-lbl">Tranche 3 (Surprise wick)</span>
+        <span class="ticket-val" style="color:var(--green)">$1,264.50 @ ${px(t3.price)}</span>
+      </div>
+      <div class="ticket-row" style="background:rgba(194,205,148,0.06);border-radius:6px;padding:8px 6px">
+        <span class="ticket-lbl" style="font-weight:700;color:var(--text)">Blended Avg Cost</span>
+        <span class="ticket-val" style="color:var(--olive)">${px(tp.blended_avg)} (${tp.total_tokens || (Number(t1.tokens)+Number(t2.tokens)+Number(t3.tokens)).toFixed(2)} tokens)</span>
+      </div>
+      <div class="ticket-row">
+        <span class="ticket-lbl">Take Profit Targets (50% / 50%)</span>
+        <span class="ticket-val" style="color:var(--green)">${px(c.target_1 || tp.target_1)} / ${px(c.target_2 || tp.target_2)}</span>
       </div>
     </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high || c.price}, ${c.stop_loss || c.price*0.95}, ${c.target_1 || c.price*1.15}, ${c.target_2 || c.price*1.25});$('orderSlipDlg').close()">💰 Custom Sizer</button>
+      <button class="btn primary" onclick="copyRobinhoodSlip('${esc(c.symbol)}')">📋 Copy Full Ticket</button>
+    </div>
+  `;
+  $('orderSlipDlg').showModal();
+}
 
     <div style="font-size:11px;font-weight:800;color:var(--olive);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em">
       Staged Robinhood Order Steps:
@@ -1632,6 +1878,7 @@ function renderMarkets() {
 
   const sectors = [
     'All',
+    '🎯 Dips Only (<2.5% away)',
     '🔥 Memes & High Beta',
     '💎 Top Ecosystems',
     '🏛️ DeFi & Blue Chips',
@@ -1643,6 +1890,8 @@ function renderMarkets() {
   let rows;
   if (sector === 'All') {
     rows = mk.slice();
+  } else if (sector === '🎯 Dips Only (<2.5% away)') {
+    rows = mk.filter(m => m.dip_status === 'IN_ZONE' || (m.distance_pct != null && Math.abs(m.distance_pct) <= 2.5));
   } else if (sector === '🔥 Memes & High Beta') {
     const memeSyms = ['PEPE','DOGE','SHIB','BONK','WIF','FLOKI','PENGU','POPCAT','MEW','MOODENG','PNUT','CASHCAT'];
     rows = mk.filter(m => m.sector === 'Memes' || memeSyms.includes(m.symbol));
@@ -1668,16 +1917,16 @@ function renderMarkets() {
 
   rows.sort((a, b) => ((a[sortKey] ?? -Infinity) > (b[sortKey] ?? -Infinity) ? 1 : -1) * sortDir);
   const th = (k, label, num) => `<th class="${num ? 'num' : ''}" onclick="sortBy('${k}')">${label}${sortKey === k ? (sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
-  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>24h range</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}${th('news_tone', 'News tone', 1)}<th style="width:70px"></th></tr></thead><tbody>` +
+  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>🎯 Dip Status</th><th>Buy Shelf</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}<th style="width:70px"></th></tr></thead><tbody>` +
     (rows.length ? rows.map(m => `<tr>
       <td><div class="coin">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy">` : ''}<b>${esc(m.symbol)}</b> <span class="dim" style="font-size:11px">${esc(m.name || '')}</span></div></td>
       <td class="num">${px(m.price)}</td>
       <td class="num ${cls(m.change_24h)}">${pct(m.change_24h, 1)}</td>
       <td class="num ${cls(m.change_7d)}">${pct(m.change_7d, 1)}</td>
-      <td>${m.range_pos_24h != null ? `<span class="rangebar" title="${px(m.low_24h)} – ${px(m.high_24h)}"><i style="left:calc(${m.range_pos_24h}% - 1px)"></i></span>` : '<span class="dim">—</span>'}</td>
+      <td><span class="pill ${esc(m.dip_badge_cls || 'muted')}" style="font-size:10px">${esc(m.dip_badge || '—')}</span></td>
+      <td><span class="mono" style="font-size:11px;color:var(--olive)">${m.entry_low ? px(m.entry_low) + ' – ' + px(m.entry_high) : '—'}</span></td>
       <td class="num">${compact(m.volume_24h)}</td>
       <td class="num">${compact(m.market_cap)}</td>
-      <td class="num ${cls(m.news_tone)}">${m.news_tone != null ? (m.news_tone > 0 ? '+' : '') + m.news_tone + ` <span class="dim">(${m.news_mentions})</span>` : '<span class="dim">—</span>'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn" style="padding:2px 7px;font-size:11px" onclick="go('chart');loadChart('${esc(m.symbol)}')" title="Open TradingView Chart">📈</button>
         <button class="btn primary" style="padding:2px 7px;font-size:11px" onclick="openOrderSlip('${esc(m.symbol)}')" title="Robinhood Order Slip">📋</button>

@@ -84,7 +84,9 @@ def fetch_markets_hyperliquid() -> List[Dict[str, Any]]:
 def fetch_markets_paprika() -> List[Dict[str, Any]]:
     """Primary market list: every Robinhood-tradable coin in config.RH_COINS, priced
     by CoinPaprika (one request for all coins; has 1h / 24h / 7d change)."""
-    raw = data_fetcher.fetch_url(config.COINPAPRIKA_TICKERS, timeout=12)
+    raw = data_fetcher.fetch_url(config.COINPAPRIKA_TICKERS, timeout=16)
+    if not raw:
+        raw = data_fetcher.fetch_url(config.COINPAPRIKA_TICKERS, timeout=16)
     if not raw:
         return []
     out = []
@@ -523,28 +525,44 @@ CALLOUT_CONFIGS = {
 }
 
 
+def _format_level(val: float, ref_price: float) -> float:
+    if ref_price >= 1000:
+        return round(val, 2)
+    elif ref_price >= 1:
+        return round(val, 2)
+    elif ref_price >= 0.01:
+        return round(val, 4)
+    elif ref_price >= 0.0001:
+        return round(val, 6)
+    else:
+        return round(val, 8)
+
+
 def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     mids = data_fetcher.fetch_hyperliquid_mids()
-    px_map = {m["symbol"]: (m.get("price"), m.get("change_24h")) for m in markets}
-
+    m_dict = {m["symbol"]: m for m in markets}
+    processed_symbols = set()
     callouts = []
+
+    # 1. Process curated core setups with handcrafted structural levels
     for sym, cfg in CALLOUT_CONFIGS.items():
+        processed_symbols.add(sym)
         price = None
         chg = None
+        chg7 = None
+        m_item = m_dict.get(sym)
+        if m_item:
+            price = m_item.get("price")
+            chg = m_item.get("change_24h")
+            chg7 = m_item.get("change_7d")
+
         if sym in mids and mids[sym] is not None:
             price = mids[sym]
         elif sym == "PEPE" and "kPEPE" in mids and mids["kPEPE"] is not None:
             price = mids["kPEPE"] / 1000.0
-        elif sym in px_map and px_map[sym][0] is not None:
-            price = px_map[sym][0]
 
-        if price is None and sym in px_map:
-            price = px_map[sym][0]
         if price is None:
             continue
-
-        if chg is None and sym in px_map:
-            chg = px_map[sym][1]
 
         elo, ehi = cfg["entry_low"], cfg["entry_high"]
         stop = cfg["stop_loss"]
@@ -556,22 +574,22 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
         if elo <= price <= ehi:
             status = "IN_ZONE"
-            badge = "🟢 IN BUY ZONE"
+            badge = "🟢 IN BUY ZONE (PRIME DIP)"
             badge_cls = "live"
-            desc = f"Price is inside optimal entry range ({elo} – {ehi}). Limit orders ready."
+            desc = f"Price is inside optimal dip shelf ({elo} – {ehi}). Ready for Robinhood limit order."
             dist_pct = 0.0
         elif price > ehi:
             dist = round((price - ehi) / ehi * 100, 1)
-            if dist <= 3.5:
+            if dist <= 2.5:
                 status = "NEAR_ZONE"
-                badge = "⏳ NEAR ENTRY (WAIT DIP)"
+                badge = "⏳ NEAR DIP (WAIT PULLBACK)"
                 badge_cls = "warn"
                 desc = f"Hovering +{dist}% above entry shelf. Standing by for dip into {elo}–{ehi}."
             else:
                 status = "WAIT_PULLBACK"
-                badge = "⏱ WAITING FOR PULLBACK"
+                badge = "⏱ EXTENDED (WAIT DIP)"
                 badge_cls = "muted"
-                desc = f"Extended +{dist}% above entry zone. Do not FOMO chase."
+                desc = f"Extended +{dist}% above entry zone. Do not chase green candles."
             dist_pct = dist
         else:
             if price >= stop:
@@ -588,16 +606,39 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 desc = f"Broke below hard stop (${stop}). Stand down until structure reclaims."
                 dist_pct = None
 
+        # Calculate Dip Attractiveness Score (0-100)
+        dip_score = 60
+        if status == "IN_ZONE":
+            dip_score += 30
+        elif status == "NEAR_ZONE":
+            dip_score += 20
+        elif status == "DEEP_DISCOUNT":
+            dip_score += 15
+        elif status == "WAIT_PULLBACK":
+            dip_score -= min(25, int(dist_pct or 0))
+
+        if chg is not None:
+            if chg < 0:
+                dip_score += min(15, int(abs(chg) * 2))
+            elif chg > 5:
+                dip_score -= min(15, int(chg))
+
+        if chg7 is not None and chg7 > 0:
+            dip_score += min(10, int(chg7 * 0.4))
+
+        dip_score = max(10, min(99, dip_score))
+
         # Staged Robinhood Tranche Plan for Charles's $5,058 Dry Powder
         tranche_1_usd = 1770.30  # 35%
         tranche_2_usd = 2023.20  # 40%
         tranche_3_usd = 1264.50  # 25%
         mid_entry = round((elo + ehi) / 2.0, 8 if elo < 0.01 else 2)
 
-        t1_tok = round(tranche_1_usd / ehi, 6 if ehi < 1.0 else 3)
-        t2_tok = round(tranche_2_usd / mid_entry, 6 if mid_entry < 1.0 else 3)
-        t3_tok = round(tranche_3_usd / elo, 6 if elo < 1.0 else 3)
-        tot_tok = round(t1_tok + t2_tok + t3_tok, 6 if elo < 1.0 else 3)
+        tok_dec = 8 if elo < 0.0001 else (6 if elo < 0.01 else (4 if elo < 1.0 else (2 if elo < 100 else 3)))
+        t1_tok = round(tranche_1_usd / ehi, tok_dec)
+        t2_tok = round(tranche_2_usd / mid_entry, tok_dec)
+        t3_tok = round(tranche_3_usd / elo, tok_dec)
+        tot_tok = round(t1_tok + t2_tok + t3_tok, tok_dec)
         blend_avg = round(5058.00 / tot_tok, 8 if elo < 0.01 else 2) if tot_tok > 0 else avg_e
         down_loss = round(max(0.0, (blend_avg - stop) * tot_tok), 2)
         r_pct = round(down_loss / 5058.00 * 100.0, 1)
@@ -621,6 +662,8 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "sector": cfg["sector"],
             "price": price,
             "change_24h": chg,
+            "change_7d": chg7,
+            "dip_score": dip_score,
             "status": status,
             "badge": badge,
             "badge_cls": badge_cls,
@@ -628,22 +671,185 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "distance_pct": dist_pct,
             "entry_low": elo,
             "entry_high": ehi,
-            "reclaim_trigger": cfg["reclaim_trigger"],
+            "reclaim_trigger": cfg.get("reclaim_trigger"),
             "stop_loss": stop,
             "target_1": t1,
             "target_2": t2,
             "rr_ratio": rr,
-            "timeframe": cfg["timeframe"],
-            "setup_type": cfg["setup_type"],
-            "notes": cfg["notes"],
-            "conviction": cfg["conviction"],
-            "robinhood": cfg["robinhood"],
+            "timeframe": cfg.get("timeframe", "4H / Daily"),
+            "setup_type": cfg.get("setup_type", "Support Shelf Retest"),
+            "notes": cfg.get("notes", "Resting limit orders ready."),
+            "conviction": cfg.get("conviction", "HIGH (A+)"),
+            "robinhood": True,
             "tranche_plan": tranche_plan,
         })
 
-    # Sort so IN_ZONE and NEAR_ZONE appear at the top
+    # 2. Process all remaining Robinhood cryptos algorithmically
+    for m in markets:
+        sym = m.get("symbol")
+        if not sym or sym in processed_symbols:
+            continue
+        price = m.get("price")
+        if not price or price <= 0:
+            continue
+
+        chg = m.get("change_24h") or 0.0
+        chg7 = m.get("change_7d") or 0.0
+        mcap = m.get("market_cap") or 0
+        name = m.get("name") or sym
+        sector = m.get("sector") or "Robinhood Crypto"
+
+        # Calculate dynamic levels based on volatility and price action
+        if chg <= -2.0:
+            elo = _format_level(price * 0.955, price)
+            ehi = _format_level(price * 1.008, price)
+            stop = _format_level(price * 0.910, price)
+            t1 = _format_level(price * 1.120, price)
+            t2 = _format_level(price * 1.250, price)
+            setup_type = "Active 24h Dip Retest"
+            notes = f"In active pullback ({chg:+.1f}% 24h). Resting limit order in dip shelf with stop strictly at {stop}."
+            conviction = "ALGO DIP (A)" if mcap >= 1e9 else "SPECULATIVE DIP"
+        elif chg <= 1.5:
+            elo = _format_level(price * 0.940, price)
+            ehi = _format_level(price * 0.985, price)
+            stop = _format_level(price * 0.890, price)
+            t1 = _format_level(price * 1.100, price)
+            t2 = _format_level(price * 1.220, price)
+            setup_type = "Consolidation Range Dip"
+            notes = f"Consolidating ({chg:+.1f}% 24h). Resting limit bids between {elo}–{ehi}."
+            conviction = "ALGO RANGE" if mcap >= 1e9 else "SPECULATIVE"
+        else:
+            elo = _format_level(price * 0.900, price)
+            ehi = _format_level(price * 0.950, price)
+            stop = _format_level(price * 0.850, price)
+            t1 = _format_level(price * 1.080, price)
+            t2 = _format_level(price * 1.200, price)
+            setup_type = "Pumping · Wait For Pullback"
+            notes = f"Up +{chg:.1f}% today. Do not FOMO green candles. Wait for retracement into {elo}–{ehi} shelf."
+            conviction = "WAIT PULLBACK"
+
+        avg_e = (elo + ehi) / 2
+        risk = max(avg_e - stop, 0.000001)
+        rew = max(t1 - avg_e, 0)
+        rr = round(rew / risk, 1)
+
+        if elo <= price <= ehi:
+            status = "IN_ZONE"
+            badge = "🟢 IN BUY ZONE (PRIME DIP)"
+            badge_cls = "live"
+            desc = f"Price is inside optimal dip shelf ({elo} – {ehi}). Ready for Robinhood limit order."
+            dist_pct = 0.0
+        elif price > ehi:
+            dist = round((price - ehi) / ehi * 100, 1)
+            if dist <= 2.5:
+                status = "NEAR_ZONE"
+                badge = "⏳ NEAR DIP (WAIT PULLBACK)"
+                badge_cls = "warn"
+                desc = f"Hovering +{dist}% above entry shelf. Standing by for dip into {elo}–{ehi}."
+            else:
+                status = "WAIT_PULLBACK"
+                badge = "⏱ EXTENDED (WAIT DIP)"
+                badge_cls = "muted"
+                desc = f"Extended +{dist}% above entry zone. Do not chase green candles."
+            dist_pct = dist
+        else:
+            if price >= stop:
+                dist = round((elo - price) / elo * 100, 1)
+                status = "DEEP_DISCOUNT"
+                badge = "⚡ DEEP DISCOUNT WICK"
+                badge_cls = "olive"
+                desc = f"Swept -{dist}% below base. Accumulate if held above {stop}."
+                dist_pct = -dist
+            else:
+                status = "STOPPED"
+                badge = "🛑 STOPPED OUT / AVOID"
+                badge_cls = "down"
+                desc = f"Broke below stop ({stop}). Stand down."
+                dist_pct = None
+
+        dip_score = 50
+        if status == "IN_ZONE":
+            dip_score += 30
+        elif status == "NEAR_ZONE":
+            dip_score += 20
+        elif status == "DEEP_DISCOUNT":
+            dip_score += 15
+        elif status == "WAIT_PULLBACK":
+            dip_score -= min(25, int(dist_pct or 0))
+
+        if chg < 0:
+            dip_score += min(15, int(abs(chg) * 2))
+        elif chg > 5:
+            dip_score -= min(15, int(chg))
+
+        if chg7 > 0:
+            dip_score += min(10, int(chg7 * 0.4))
+
+        dip_score = max(10, min(95, dip_score))
+
+        # Staged Robinhood Tranche Plan
+        tranche_1_usd = 1770.30
+        tranche_2_usd = 2023.20
+        tranche_3_usd = 1264.50
+        mid_entry = round((elo + ehi) / 2.0, 8 if elo < 0.01 else 2)
+
+        tok_dec = 8 if elo < 0.0001 else (6 if elo < 0.01 else (4 if elo < 1.0 else (2 if elo < 100 else 3)))
+        t1_tok = round(tranche_1_usd / ehi, tok_dec)
+        t2_tok = round(tranche_2_usd / mid_entry, tok_dec)
+        t3_tok = round(tranche_3_usd / elo, tok_dec)
+        tot_tok = round(t1_tok + t2_tok + t3_tok, tok_dec)
+        blend_avg = round(5058.00 / tot_tok, 8 if elo < 0.01 else 2) if tot_tok > 0 else avg_e
+        down_loss = round(max(0.0, (blend_avg - stop) * tot_tok), 2)
+        r_pct = round(down_loss / 5058.00 * 100.0, 1)
+
+        tranche_plan = {
+            "tranche_1": {"pct": 35, "usd": tranche_1_usd, "price": ehi, "tokens": t1_tok},
+            "tranche_2": {"pct": 40, "usd": tranche_2_usd, "price": mid_entry, "tokens": t2_tok},
+            "tranche_3": {"pct": 25, "usd": tranche_3_usd, "price": elo, "tokens": t3_tok},
+            "total_tokens": tot_tok,
+            "blended_avg": blend_avg,
+            "stop_loss": stop,
+            "downside_loss": down_loss,
+            "risk_pct": r_pct,
+            "target_1": t1,
+            "target_2": t2,
+        }
+
+        callouts.append({
+            "symbol": sym,
+            "name": name,
+            "sector": sector,
+            "price": price,
+            "change_24h": chg,
+            "change_7d": chg7,
+            "dip_score": dip_score,
+            "status": status,
+            "badge": badge,
+            "badge_cls": badge_cls,
+            "desc": desc,
+            "distance_pct": dist_pct,
+            "entry_low": elo,
+            "entry_high": ehi,
+            "reclaim_trigger": None,
+            "stop_loss": stop,
+            "target_1": t1,
+            "target_2": t2,
+            "rr_ratio": rr,
+            "timeframe": "4H / Daily",
+            "setup_type": setup_type,
+            "notes": notes,
+            "conviction": conviction,
+            "robinhood": True,
+            "tranche_plan": tranche_plan,
+        })
+
+    # Sort: IN_ZONE first, then NEAR_ZONE, then by dip_score descending, then closest distance
     order_weight = {"IN_ZONE": 0, "NEAR_ZONE": 1, "DEEP_DISCOUNT": 2, "WAIT_PULLBACK": 3, "STOPPED": 4}
-    callouts.sort(key=lambda c: (order_weight.get(c["status"], 5), abs(c["distance_pct"] or 999)))
+    callouts.sort(key=lambda c: (
+        order_weight.get(c["status"], 5),
+        -c.get("dip_score", 0),
+        abs(c["distance_pct"] if c["distance_pct"] is not None else 999)
+    ))
     return callouts
 
 
@@ -854,6 +1060,22 @@ def build_dashboard() -> Dict[str, Any]:
 
     callouts = build_live_callouts(markets)
     cockpit = build_pretrade_cockpit(markets, callouts, social_intel, fng, upcoming)
+
+    callout_map = {c["symbol"]: c for c in callouts}
+    for m in markets:
+        c = callout_map.get(m["symbol"])
+        if c:
+            m["dip_status"] = c["status"]
+            m["dip_badge"] = c["badge"]
+            m["dip_badge_cls"] = c["badge_cls"]
+            m["dip_score"] = c["dip_score"]
+            m["distance_pct"] = c["distance_pct"]
+            m["entry_low"] = c["entry_low"]
+            m["entry_high"] = c["entry_high"]
+            m["stop_loss"] = c["stop_loss"]
+            m["target_1"] = c["target_1"]
+            m["target_2"] = c["target_2"]
+            m["tranche_plan"] = c["tranche_plan"]
 
     return {
         "status": "success",
