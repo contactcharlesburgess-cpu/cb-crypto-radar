@@ -15,14 +15,18 @@ BULLISH_KEYWORDS = {
     "etf approval": 9.5, "approved etf": 9.5, "etp launch": 8.0, "physically backed": 8.0,
     "institutional inflow": 8.5, "record inflows": 8.5, "blackrock": 7.5, "fidelity": 7.0,
     "treasury reserve": 8.5, "corporate treasury": 8.0, "microstrategy": 7.5,
-    # Regulatory Wins (+7 to +9)
+    "strategic bitcoin reserve": 9.5, "national reserve": 9.0, "bitcoin reserve": 8.5,
+    # Regulatory Wins & Trump Policy (+7 to +9)
     "sec dismisses": 9.0, "lawsuit dropped": 8.5, "regulatory clarity": 8.0,
     "custody path": 7.5, "favorable ruling": 8.5, "legal win": 8.0, "crypto task force": 7.0,
     "approved": 7.0, "cleared": 6.5, "green light": 7.0,
+    "pro-crypto": 8.0, "trump signal": 7.5, "trump pledge": 7.5, "deregulation": 7.5,
     # Technology, AI & Breakouts (+6 to +8)
     "ai agent": 7.5, "ai compute": 7.5, "gpu network": 7.0, "mainnet launch": 7.0,
     "token burn": 7.0, "halving": 7.5, "all-time high": 8.0, "ath": 7.5, "breakout": 7.0,
     "surges": 6.5, "soars": 7.0, "rallies": 6.0, "partnership": 6.5, "integration": 6.0,
+    "rebound": 6.5, "rebounds": 6.5, "crypto gains": 6.5, "underpins crypto": 6.5,
+    "cools fears": 7.0, "de-escalation": 7.5, "rules out strike": 8.0, "rules out attack": 8.0,
     # Macro & Easing (+5 to +7)
     "rate cut": 7.5, "fed cuts": 8.0, "dovish": 7.0, "easing": 6.5, "liquidity injection": 8.0,
     "stimulus": 7.0, "cooling inflation": 6.5,
@@ -39,14 +43,16 @@ BEARISH_KEYWORDS = {
     "sec sues": -9.0, "sec charges": -9.0, "subpoena": -7.5, "wells notice": -8.5,
     "criminal charges": -9.5, "doj": -8.0, "regulatory crackdown": -8.5, "banned": -8.5,
     "delisting": -8.0, "delisted": -8.0, "investigation": -7.0, "sanctions": -8.0,
-    # Macro Hawkish & Inflation (-5 to -8)
+    "legal battle": -6.5, "lawsuit": -6.5,
+    # Macro Hawkish & Geopolitics (-5 to -8)
     "rate hike": -8.0, "fed hikes": -8.5, "hawkish": -7.5, "inflation jumps": -7.5,
     "hot cpi": -7.5, "bond yield spike": -7.0, "quantitative tightening": -7.0,
+    "tariffs": -7.0, "trade war": -8.0, "attack fears": -8.0, "iran strike": -7.5,
+    "war escalation": -8.5, "tensions escalate": -7.5,
     # Market Dumps & Sell-offs (-5 to -8)
     "crash": -8.0, "plunges": -7.5, "tumbles": -7.0, "sell-off": -6.5, "dump": -7.0,
     "whale dump": -7.5, "mt gox": -7.0, "government transfer": -6.5, "massive liquidation": -8.0,
-    # General negative
-    "bearish": -6.5, "collapse": -8.5, "outflows": -6.0, "panic": -7.5,
+    "liquidation pressure": -6.0, "bearish": -6.5, "collapse": -8.5, "outflows": -6.0, "panic": -7.5,
 }
 
 ASSET_PATTERNS = {

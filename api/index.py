@@ -51,6 +51,10 @@ class handler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"quotes": market.fetch_quotes(syms)}, max_age=15)
             elif path in ("/api/signals", "/api/callouts"):
                 self.send_json({"status": "success", "fetched_at": market._now_iso(), "callouts": market.get_callouts()}, max_age=5)
+            elif path in ("/api/cockpit", "/api/radar"):
+                self.send_json(market.get_cockpit(), max_age=10)
+            elif path in ("/api/social", "/api/tweets"):
+                self.send_json({"status": "success", "fetched_at": market._now_iso(), "items": market.get_social_intel()}, max_age=15)
             elif path in ("/api", "/api/data"):
                 force = qs.get("refresh", ["0"])[0] == "1"
                 self.send_json(market.get_dashboard(force=force), max_age=60)

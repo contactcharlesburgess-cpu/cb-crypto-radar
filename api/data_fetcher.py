@@ -196,6 +196,94 @@ def fetch_crypto_news() -> List[Dict[str, Any]]:
     return unique_articles
 
 
+def fetch_trump_and_social_intel() -> List[Dict[str, Any]]:
+    """
+    Fetch live Trump statements, Truth Social intelligence, VIP tweets (Musk, Saylor, Vitalik),
+    and breaking crypto media.
+    """
+    urls = [
+        ("https://news.google.com/rss/search?q=Trump+AND+(crypto+OR+bitcoin+OR+tariffs+OR+WLFI)+when:3d&hl=en-US&gl=US&ceid=US:en", "Trump Intel"),
+        ("https://news.google.com/rss/search?q=(%22Elon+Musk%22+OR+%22Michael+Saylor%22+OR+%22Vitalik%22+OR+%22Trump%22)+AND+(tweet+OR+X+OR+Truth+Social+OR+crypto+OR+bitcoin)+when:3d&hl=en-US&gl=US&ceid=US:en", "VIP Social"),
+        ("https://www.theblock.co/rss.xml", "The Block"),
+    ]
+    raw_items = []
+    seen = set()
+    for u, default_src in urls:
+        xml = fetch_url(u, timeout=5)
+        if not xml:
+            continue
+        try:
+            root = ET.fromstring(xml)
+            channel = root.find("channel")
+            items = channel.findall("item") if channel is not None else root.findall(".//item")
+            for it in items[:15]:
+                t_node = it.find("title")
+                l_node = it.find("link")
+                d_node = it.find("pubDate")
+                s_node = it.find("source")
+                if t_node is None or not t_node.text:
+                    continue
+                title = clean_html(t_node.text).strip()
+                norm = re.sub(r"[^a-zA-Z0-9]", "", title.lower())[:35]
+                if not norm or norm in seen:
+                    continue
+                seen.add(norm)
+
+                t_lower = title.lower()
+                # Determine author and source type
+                if "truth social" in t_lower or "trump" in t_lower or "wlfi" in t_lower:
+                    stype = "TRUMP"
+                    author = "@realDonaldTrump (Truth Social)" if ("truth social" in t_lower or "post" in t_lower or "truth" in t_lower) else "Donald J. Trump / Policy"
+                    badge_label = "🦅 TRUMP INTEL"
+                elif "saylor" in t_lower or "microstrategy" in t_lower:
+                    stype = "VIP_TWEET"
+                    author = "@saylor (Michael Saylor)"
+                    badge_label = "⚡ VIP ALPHA"
+                elif "musk" in t_lower or "elon" in t_lower:
+                    stype = "VIP_TWEET"
+                    author = "@elonmusk (Elon Musk)"
+                    badge_label = "⚡ VIP ALPHA"
+                elif "vitalik" in t_lower:
+                    stype = "VIP_TWEET"
+                    author = "@VitalikButerin"
+                    badge_label = "⚡ VIP ALPHA"
+                elif "cz" in t_lower or "binance" in t_lower:
+                    stype = "VIP_TWEET"
+                    author = "@cz_binance"
+                    badge_label = "⚡ VIP ALPHA"
+                else:
+                    stype = "BREAKING"
+                    author = (s_node.text.strip() if s_node is not None and s_node.text else default_src)
+                    badge_label = "🔥 BREAKING NEWS"
+
+                raw_items.append({
+                    "title": title,
+                    "author": author,
+                    "source_type": stype,
+                    "badge_label": badge_label,
+                    "source": default_src,
+                    "link": l_node.text.strip() if l_node is not None and l_node.text else "",
+                    "pubDate": d_node.text.strip() if d_node is not None and d_node.text else "",
+                })
+        except Exception as e:
+            print(f"[WARN] Error parsing {default_src} stream: {e}")
+
+    import sentiment_analyzer
+    processed = []
+    for it in raw_items:
+        analysis = sentiment_analyzer.analyze_headline(it["title"], source=it["source"])
+        processed.append({
+            **it,
+            "score": analysis["score"],
+            "sentiment": analysis["sentiment"],
+            "impact": analysis["impact"],
+            "catalyst": analysis["catalyst"],
+            "assets": analysis["assets"],
+            "takeaway": analysis["takeaway"],
+        })
+    return processed
+
+
 def fetch_fear_and_greed() -> Dict[str, Any]:
     """Fetch current and previous Fear & Greed index."""
     raw = fetch_url(config.FEEDS["fear_and_greed"])

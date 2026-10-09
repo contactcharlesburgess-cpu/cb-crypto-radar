@@ -167,6 +167,66 @@
       padding: 9px 12px; font-size: 12px; line-height: 1.5; color: #D6DEC7; margin-bottom: 12px;
     }
     .signal-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* Pre-Trade Master Cockpit & Clearance Radar */
+    .cockpit-box {
+      background: linear-gradient(180deg, rgba(16,24,16,0.92) 0%, rgba(10,15,10,0.95) 100%);
+      border: 1px solid rgba(194,205,148,0.35); border-radius: 18px; padding: 16px; margin-bottom: 14px;
+      position: relative; overflow: hidden;
+    }
+    .cockpit-box.green-clear { border-color: rgba(134,239,172,0.6); box-shadow: 0 0 24px rgba(134,239,172,0.12); }
+    .cockpit-box.yellow-caution { border-color: rgba(251,191,36,0.6); box-shadow: 0 0 24px rgba(251,191,36,0.1); }
+    .cockpit-box.red-standdown { border-color: rgba(248,113,113,0.7); box-shadow: 0 0 24px rgba(248,113,113,0.15); }
+
+    .clearance-badge {
+      font-size: 12.5px; font-weight: 800; padding: 5px 12px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); letter-spacing: 0.02em;
+    }
+    .clearance-badge.live { background: rgba(134,239,172,0.18); color: var(--green); border: 1px solid rgba(134,239,172,0.45); }
+    .clearance-badge.warn { background: rgba(251,191,36,0.18); color: var(--amber); border: 1px solid rgba(251,191,36,0.45); }
+    .clearance-badge.down { background: rgba(248,113,113,0.2); color: var(--red); border: 1px solid rgba(248,113,113,0.45); }
+
+    .cockpit-checkpoints {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0;
+    }
+    @media (max-width: 820px) { .cockpit-checkpoints { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .cockpit-checkpoints { grid-template-columns: 1fr; } }
+
+    .cp-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px;
+    }
+    .cp-card.pass { border-color: rgba(134,239,172,0.3); }
+    .cp-card.warn { border-color: rgba(251,191,36,0.3); }
+    .cp-card.fail { border-color: rgba(248,113,113,0.3); }
+    .cp-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 10.5px; font-weight: 700; color: var(--muted); }
+    .cp-val { font-size: 12px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+    .cp-desc { font-size: 10.5px; color: var(--dim); margin-top: 3px; line-height: 1.35; }
+
+    /* Live Tweets & Trump Intel */
+    .tweet-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px; margin-bottom: 10px; transition: all 0.2s ease;
+    }
+    .tweet-card:hover { border-color: rgba(194,205,148,0.35); background: var(--card-hover); }
+    .tweet-card.trump-card { border-left: 3px solid #F59E0B; background: linear-gradient(90deg, rgba(245,158,11,0.05) 0%, var(--card) 100%); }
+    .tweet-card.vip-card { border-left: 3px solid #A78BFA; background: linear-gradient(90deg, rgba(167,139,250,0.05) 0%, var(--card) 100%); }
+    .tweet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .tweet-author { font-weight: 800; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .tweet-body { font-size: 13px; line-height: 1.5; color: #E5E7EB; margin-bottom: 8px; }
+    .tweet-takeaway {
+      background: var(--surface); border-radius: 8px; padding: 6px 10px; font-size: 11.5px;
+      color: var(--muted); line-height: 1.4; border: 1px solid var(--line);
+    }
+
+    .pulse-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); margin-right: 5px; animation: pulseGlow 1.8s infinite;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(134,239,172,0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(134,239,172,0); }
+      100% { box-shadow: 0 0 0 0 rgba(134,239,172,0); }
+    }
   </style>
 </head>
 <body>
@@ -175,11 +235,16 @@
     <div class="brand">
       <img src="/icon-192.png" alt="">
       <div>
-        <h1>CB Crypto Radar</h1>
-        <div class="sub" id="updated">Loading…</div>
+        <h1>CB Crypto Cockpit</h1>
+        <div class="sub" id="updated"><span class="pulse-dot"></span>Live Telemetry · Streaming 3s</div>
       </div>
     </div>
-    <button class="btn" onclick="refreshAll(true)" aria-label="Refresh">↻ Refresh</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn" id="btnNotifyToggle" onclick="toggleDesktopNotifications()" style="font-size:11px;padding:6px 10px">
+        <span id="notifyIcon">🔔</span> Desktop Alerts: <span id="notifyStatus">OFF</span>
+      </button>
+      <button class="btn" onclick="refreshAll(true)" aria-label="Refresh">↻ Refresh</button>
+    </div>
   </header>
 
   <!-- Live Top Streaming Ticker -->
@@ -191,6 +256,34 @@
 
   <!-- ======================= LIVE ENTRY CALLOUTS / SNIPER RADAR ======================= -->
   <section class="view on" id="v-signals">
+    <!-- Master Pre-Trade Cockpit: Go / No-Go Clearance Radar -->
+    <div class="cockpit-box green-clear" id="cockpitBox">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <span class="clearance-badge live" id="cockpitVerdictBadge">🟢 CLEAR TO TRADE · RESTING LIMITS</span>
+          <span class="mono" style="font-size:12px;margin-left:8px;color:var(--text)" id="cockpitScore">Posture Score: 82/100 (Favorable)</span>
+        </div>
+        <div class="dim" style="font-size:11px" id="cockpitTime">Pre-Trade Clearance Check</div>
+      </div>
+
+      <div style="margin:10px 0 8px;font-size:13.5px;font-weight:600;line-height:1.5;color:#F3F6EC" id="cockpitSummary">
+        Analyzing live macro, Trump statements, Forex Factory calendar, and support shelves…
+      </div>
+
+      <!-- 5-Pillar Cockpit Checkpoints Grid -->
+      <div class="cockpit-checkpoints" id="cockpitCheckpoints">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Quick Action Rules -->
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line)">
+        <span><b>Strategy:</b> Limit bids resting on discount shelves</span>
+        <span><b>Capital:</b> 35% / 40% / 25% staged scale-in</span>
+        <span><b>Trump/Macro:</b> Statements cooling geopolitical hazard</span>
+        <span><b>Discipline:</b> Never market-buy green candle spikes</span>
+      </div>
+    </div>
+
     <!-- Capital Posture & Dry Powder Banner -->
     <div class="card" style="border-color:rgba(194,205,148,.4);background:linear-gradient(180deg,rgba(194,205,148,0.1) 0%,rgba(10,15,10,0.7) 100%);margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -276,6 +369,39 @@
         <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=5058;runEntryCalc()">$5,058 (100% MAX)</button>
       </div>
       <div class="result" id="calcResults"></div>
+    </div>
+  </section>
+
+  <!-- ======================= LIVE TWEETS & TRUMP INTEL ======================= -->
+  <section class="view" id="v-intel">
+    <!-- Header Card -->
+    <div class="card" style="border-color:rgba(245,158,11,0.35);background:linear-gradient(180deg,rgba(245,158,11,0.08) 0%,rgba(10,15,10,0.7) 100%);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <span class="pill" style="background:rgba(245,158,11,0.2);color:#FBBF24;border-color:rgba(245,158,11,0.4)">🦅 TRUMP &amp; VIP ALPHA STREAM</span>
+          <b style="font-size:15px;margin-left:8px">Live Tweets, Truth Social &amp; Squawk</b>
+        </div>
+        <div class="dim" style="font-size:11px" id="socialStreamTime">Streaming live 15s</div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.4">
+        Real-time intelligence tracking Donald Trump statements, Truth Social posts, Elon Musk &amp; Michael Saylor tweets, and breaking market squawks before price moves.
+      </p>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="card" style="padding:10px 14px;margin-bottom:12px">
+      <div class="chips" id="intelChips">
+        <button class="btn on" onclick="setIntelFilter('all', this)">All Intel (<span id="cntIntel">0</span>)</button>
+        <button class="btn" onclick="setIntelFilter('trump', this)">🦅 Trump &amp; Truth Social (<span id="cntTrump">0</span>)</button>
+        <button class="btn" onclick="setIntelFilter('vip', this)">⚡ VIP Tweets (Musk/Saylor/CZ) (<span id="cntVip">0</span>)</button>
+        <button class="btn" onclick="setIntelFilter('high', this)">🔥 High Impact (&ge;6.0)</button>
+        <button class="btn" onclick="setIntelFilter('breaking', this)">📰 Major Outlets</button>
+      </div>
+    </div>
+
+    <!-- Intel Feed List -->
+    <div id="intelList">
+      <div class="empty">Streaming live Trump statements &amp; VIP tweets…</div>
     </div>
   </section>
 
@@ -425,7 +551,11 @@
       <div class="card" style="margin:0"><h2>Top losers · 24h</h2><div id="losers"></div></div>
     </div>
     <div class="card">
-      <h2><span>Markets</span><small id="mktSrc"></small></h2>
+      <h2><span>All 84 Robinhood Cryptos <span class="pill live">Verified Tradable</span></span><small id="mktSrc"></small></h2>
+      <!-- Search Bar -->
+      <div style="margin-bottom:10px">
+        <input id="mktSearch" type="text" placeholder="🔍 Search all 84 Robinhood coins (e.g. TRUMP, PEPE, SUI, DOGE, SOL, WLFI)..." oninput="renderMarkets()" style="font-size:13px;padding:9px 12px">
+      </div>
       <div class="chips" id="sectorChips" style="margin-bottom:8px"></div>
       <div class="scroll-x"><table id="mktTable"></table></div>
       <p class="dim" style="font-size:11px;margin:10px 2px 0">24h range: where price sits between today's low (left) and high (right). News tone: keyword score of recent headlines mentioning the coin (−10 to +10). It's a rough read, not a signal.</p>
@@ -452,12 +582,12 @@
   <div class="foot">Data: Hyperliquid, CoinGecko, Coinbase, Yahoo Finance, Alternative.me, Forex Factory, news RSS. Prices can lag. Nothing here is financial advice.</div>
 </div>
 
-<nav class="tabs"><div class="in" style="grid-template-columns: repeat(6, 1fr); max-width: 620px;">
-  <button data-v="signals" class="on" onclick="go('signals')"><span class="ic">🎯</span>Signals</button>
+<nav class="tabs"><div class="in" style="grid-template-columns: repeat(6, 1fr); max-width: 640px;">
+  <button data-v="signals" class="on" onclick="go('signals')"><span class="ic">🎯</span>Cockpit</button>
+  <button data-v="intel" onclick="go('intel')"><span class="ic">🦅</span>Tweets</button>
   <button data-v="hype" onclick="go('hype')"><span class="ic">⚡</span>HYPE</button>
   <button data-v="port" onclick="go('port')"><span class="ic">💼</span>Portfolio</button>
-  <button data-v="mkts" onclick="go('mkts')"><span class="ic">📊</span>Markets</button>
-  <button data-v="news" onclick="go('news')"><span class="ic">📰</span>News</button>
+  <button data-v="mkts" onclick="go('mkts')"><span class="ic">📊</span>Markets (84)</button>
   <button data-v="chart" onclick="go('chart')"><span class="ic">📈</span>Chart</button>
 </div></nav>
 
@@ -532,15 +662,21 @@ function go(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.toggle('on', el.id === 'v-' + v));
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'chart') loadChart(store.get('cbr_chart', 'HYPE'));
-  if (v === 'signals') loadSignals();
+  if (v === 'signals') { loadSignals(); loadCockpit(); }
+  if (v === 'intel') loadCockpit();
   window.scrollTo(0, 0);
 }
 
-// ------------------------------------------------------------------ Live Signals & Capital Calculator
+// ------------------------------------------------------------------ Live Cockpit, Tweets & Signals
 let callouts = [];
 let signalFilter = 'all';
 let audioAlertEnabled = store.get('cbr_audio_alert', false);
+let desktopNotificationsEnabled = store.get('cbr_desktop_notify', false);
 let lastChimedSymbol = null;
+let lastNotifiedTrumpTitle = null;
+let cockpitData = null;
+let socialIntel = [];
+let intelFilter = 'all';
 
 function updateAudioUI() {
   const ico = $('soundIcon'), st = $('soundStatus'), btn = $('btnSoundToggle');
@@ -549,10 +685,50 @@ function updateAudioUI() {
   if (btn) btn.className = 'btn ' + (audioAlertEnabled ? 'primary' : '');
 }
 
+function updateNotifyUI() {
+  const ico = $('notifyIcon'), st = $('notifyStatus'), btn = $('btnNotifyToggle');
+  if (ico) ico.textContent = desktopNotificationsEnabled ? '🔔' : '🔕';
+  if (st) st.textContent = desktopNotificationsEnabled ? 'ON' : 'OFF';
+  if (btn) btn.className = 'btn ' + (desktopNotificationsEnabled ? 'primary' : '');
+}
+
 function toggleAudioAlert() {
   audioAlertEnabled = !audioAlertEnabled;
   store.set('cbr_audio_alert', audioAlertEnabled);
   updateAudioUI();
+  if (audioAlertEnabled) {
+    playSignalChime();
+  }
+}
+
+async function toggleDesktopNotifications() {
+  if (!("Notification" in window)) {
+    alert("Desktop notifications are not supported in this browser.");
+    return;
+  }
+  if (Notification.permission !== "granted") {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      desktopNotificationsEnabled = true;
+      store.set('cbr_desktop_notify', true);
+      new Notification("CB Crypto Cockpit", { body: "Desktop notifications active! You'll receive real-time alerts for buy zones & breaking Trump intel.", icon: "/icon-192.png" });
+    } else {
+      desktopNotificationsEnabled = false;
+      store.set('cbr_desktop_notify', false);
+    }
+  } else {
+    desktopNotificationsEnabled = !desktopNotificationsEnabled;
+    store.set('cbr_desktop_notify', desktopNotificationsEnabled);
+  }
+  updateNotifyUI();
+}
+
+function sendDesktopAlert(title, body) {
+  if (desktopNotificationsEnabled && ("Notification" in window) && Notification.permission === "granted") {
+    try {
+      new Notification(title, { body, icon: "/icon-192.png" });
+    } catch(e) {}
+  }
   if (audioAlertEnabled) {
     playSignalChime();
   }
@@ -575,12 +751,141 @@ function playSignalChime() {
   } catch (e) {}
 }
 
+async function loadCockpit() {
+  try {
+    const res = await getJSON('/api/cockpit');
+    cockpitData = res.cockpit;
+    socialIntel = res.social_intel || [];
+    renderCockpit();
+    renderIntel();
+    checkIntelNotifications();
+    if ($('socialStreamTime')) $('socialStreamTime').textContent = 'Live · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  } catch(e) {
+    console.error('Cockpit fetch error:', e);
+  }
+}
+
+function renderCockpit() {
+  if (!cockpitData) return;
+  const c = cockpitData;
+  const box = $('cockpitBox');
+  if (box) {
+    box.className = 'cockpit-box ' + (c.verdict_status === 'GREEN' ? 'green-clear' : (c.verdict_status === 'RED' ? 'red-standdown' : 'yellow-caution'));
+  }
+  if ($('cockpitVerdictBadge')) {
+    $('cockpitVerdictBadge').className = 'clearance-badge ' + (c.badge_cls || 'live');
+    $('cockpitVerdictBadge').textContent = c.badge;
+  }
+  if ($('cockpitScore')) {
+    $('cockpitScore').textContent = `Posture Score: ${c.score}/100 · ${c.verdict_status === 'GREEN' ? 'Favorable Risk-On' : (c.verdict_status === 'RED' ? 'High Risk' : 'Caution / Range')}`;
+  }
+  if ($('cockpitSummary')) {
+    $('cockpitSummary').textContent = c.summary;
+  }
+  if ($('cockpitCheckpoints') && c.checkpoints) {
+    $('cockpitCheckpoints').innerHTML = c.checkpoints.map(cp => {
+      const clsName = cp.status === 'PASS' ? 'pass' : (cp.status === 'FAIL' ? 'fail' : 'warn');
+      const badgePill = cp.status === 'PASS' ? '<span class="pill live">PASS</span>' : (cp.status === 'FAIL' ? '<span class="pill down" style="color:var(--red);border-color:rgba(248,113,113,0.3)">HAZARD</span>' : '<span class="pill warn">CAUTION</span>');
+      return `
+        <div class="cp-card ${clsName}">
+          <div class="cp-top">
+            <span>${esc(cp.title)}</span>
+            ${badgePill}
+          </div>
+          <div class="cp-val">${esc(cp.label)}</div>
+          <div class="cp-desc">${esc(cp.text)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function setIntelFilter(filter, btn) {
+  intelFilter = filter;
+  document.querySelectorAll('#intelChips button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  renderIntel();
+}
+
+function renderIntel() {
+  if (!socialIntel.length) {
+    if ($('intelList')) $('intelList').innerHTML = '<div class="empty">Scanning live Trump statements & VIP social feeds…</div>';
+    return;
+  }
+
+  // Update counts
+  if ($('cntIntel')) $('cntIntel').textContent = socialIntel.length;
+  if ($('cntTrump')) $('cntTrump').textContent = socialIntel.filter(s => s.source_type === 'TRUMP').length;
+  if ($('cntVip')) $('cntVip').textContent = socialIntel.filter(s => s.source_type === 'VIP_TWEET').length;
+
+  let list = socialIntel.slice();
+  if (intelFilter === 'trump') {
+    list = list.filter(s => s.source_type === 'TRUMP');
+  } else if (intelFilter === 'vip') {
+    list = list.filter(s => s.source_type === 'VIP_TWEET');
+  } else if (intelFilter === 'high') {
+    list = list.filter(s => Math.abs(s.score || 0) >= 6.0 || s.impact === 'HIGH');
+  } else if (intelFilter === 'breaking') {
+    list = list.filter(s => s.source_type === 'BREAKING');
+  }
+
+  if (!list.length) {
+    if ($('intelList')) $('intelList').innerHTML = '<div class="empty">No intel items found for this filter. Switch to "All Intel".</div>';
+    return;
+  }
+
+  if ($('intelList')) {
+    $('intelList').innerHTML = list.map(item => {
+      const isTrump = item.source_type === 'TRUMP';
+      const isVip = item.source_type === 'VIP_TWEET';
+      const cardCls = isTrump ? 'tweet-card trump-card' : (isVip ? 'tweet-card vip-card' : 'tweet-card');
+      const badgeStyle = isTrump ? 'background:rgba(245,158,11,0.18);color:#FBBF24;border:1px solid rgba(245,158,11,0.4)'
+        : (isVip ? 'background:rgba(167,139,250,0.18);color:#C4B5FD;border:1px solid rgba(167,139,250,0.4)'
+        : 'background:rgba(158,172,149,0.12);color:var(--text);border:1px solid var(--line)');
+      
+      const sentCls = item.sentiment === 'BULLISH' ? 'pos' : (item.sentiment === 'BEARISH' ? 'neg' : 'neu');
+      const scoreStr = item.score > 0 ? `+${item.score}` : `${item.score}`;
+
+      return `
+        <div class="${cardCls}">
+          <div class="tweet-head">
+            <div class="tweet-author">
+              <span>${esc(item.author)}</span>
+              <span class="pill" style="${badgeStyle};font-size:10px;padding:1px 6px">${esc(item.badge_label || item.source_type)}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="tone ${sentCls}" style="font-size:10.5px">${scoreStr} ${esc(item.sentiment)}</span>
+              <span class="dim" style="font-size:11px">${item.pubDate ? esc(timeAgo(item.pubDate)) : ''}</span>
+            </div>
+          </div>
+          <div class="tweet-body">
+            <a href="${esc(item.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--text);text-decoration:none">
+              ${esc(item.title)}
+            </a>
+          </div>
+          ${item.takeaway ? `<div class="tweet-takeaway">💡 <b>Trader Takeaway:</b> ${esc(item.takeaway)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function checkIntelNotifications() {
+  if (!socialIntel.length) return;
+  const topTrump = socialIntel.find(s => s.source_type === 'TRUMP');
+  if (topTrump && topTrump.title !== lastNotifiedTrumpTitle) {
+    if (lastNotifiedTrumpTitle !== null) {
+      sendDesktopAlert("🦅 Breaking Trump Intel Alert", `${topTrump.title} (${topTrump.sentiment})`);
+    }
+    lastNotifiedTrumpTitle = topTrump.title;
+  }
+}
+
 function checkAudioAlert() {
-  if (!audioAlertEnabled) return;
   const inZone = callouts.find(c => c.status === 'IN_ZONE');
   if (inZone && inZone.symbol !== lastChimedSymbol) {
     lastChimedSymbol = inZone.symbol;
-    playSignalChime();
+    sendDesktopAlert(`🎯 Buy Zone Trigger: ${inZone.symbol}`, `${inZone.symbol} is inside optimal entry shelf (${px(inZone.entry_low)} - ${px(inZone.entry_high)})!`);
   } else if (!inZone) {
     lastChimedSymbol = null;
   }
@@ -1011,11 +1316,17 @@ function renderMarkets() {
   } else {
     rows = mk.filter(m => m.sector === sector);
   }
+
+  const query = ($('mktSearch')?.value || '').trim().toLowerCase();
+  if (query) {
+    rows = rows.filter(m => (m.symbol && m.symbol.toLowerCase().includes(query)) || (m.name && m.name.toLowerCase().includes(query)) || (m.sector && m.sector.toLowerCase().includes(query)));
+  }
+
   rows.sort((a, b) => ((a[sortKey] ?? -Infinity) > (b[sortKey] ?? -Infinity) ? 1 : -1) * sortDir);
   const th = (k, label, num) => `<th class="${num ? 'num' : ''}" onclick="sortBy('${k}')">${label}${sortKey === k ? (sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
-  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>24h range</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}${th('news_tone', 'News tone', 1)}</tr></thead><tbody>` +
+  $('mktTable').innerHTML = `<thead><tr>${th('symbol', 'Coin')}${th('price', 'Price', 1)}${th('change_24h', '24h', 1)}${th('change_7d', '7d', 1)}<th>24h range</th>${th('volume_24h', 'Volume', 1)}${th('market_cap', 'Mkt cap', 1)}${th('news_tone', 'News tone', 1)}<th style="width:40px"></th></tr></thead><tbody>` +
     (rows.length ? rows.map(m => `<tr>
-      <td><div class="coin">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy">` : ''}<b>${esc(m.symbol)}</b></div></td>
+      <td><div class="coin">${m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy">` : ''}<b>${esc(m.symbol)}</b> <span class="dim" style="font-size:11px">${esc(m.name || '')}</span></div></td>
       <td class="num">${px(m.price)}</td>
       <td class="num ${cls(m.change_24h)}">${pct(m.change_24h, 1)}</td>
       <td class="num ${cls(m.change_7d)}">${pct(m.change_7d, 1)}</td>
@@ -1023,7 +1334,8 @@ function renderMarkets() {
       <td class="num">${compact(m.volume_24h)}</td>
       <td class="num">${compact(m.market_cap)}</td>
       <td class="num ${cls(m.news_tone)}">${m.news_tone != null ? (m.news_tone > 0 ? '+' : '') + m.news_tone + ` <span class="dim">(${m.news_mentions})</span>` : '<span class="dim">—</span>'}</td>
-    </tr>`).join('') : `<tr><td colspan="8"><div class="empty">${errs.dash ? 'Market data unavailable.' : 'Loading…'}</div></td></tr>`) + '</tbody>';
+      <td style="text-align:right"><button class="btn" style="padding:2px 8px;font-size:11px" onclick="go('chart');loadChart('${esc(m.symbol)}')" title="Open TradingView Chart">📈</button></td>
+    </tr>`).join('') : `<tr><td colspan="9"><div class="empty">${errs.dash ? 'Market data unavailable.' : (query ? 'No coins matching "' + esc(query) + '"' : 'Loading…')}</div></td></tr>`) + '</tbody>';
 }
 function sortBy(k) { sortDir = sortKey === k ? -sortDir : (k === 'symbol' ? 1 : -1); sortKey = k; renderMarkets(); }
 
@@ -1146,21 +1458,58 @@ const CHARTS = {
   NVDA: 'NASDAQ:NVDA'
 };
 function loadChart(sym) {
+  sym = sym ? sym.toUpperCase() : 'HYPE';
   store.set('cbr_chart', sym);
-  $('chartChips').innerHTML = Object.keys(CHARTS).map(s => `<button class="btn${s === sym ? ' on' : ''}" onclick="loadChart('${s}')">${s}</button>`).join('');
-  const src = 'https://s.tradingview.com/widgetembed/?' + new URLSearchParams({ symbol: CHARTS[sym], interval: '60', theme: 'dark', style: '1', timezone: 'America/Chicago', hide_side_toolbar: '0', withdateranges: '1', locale: 'en' });
+  if (!CHARTS[sym]) {
+    CHARTS[sym] = 'BINANCE:' + sym + 'USDT';
+  }
+  const topCoins = ['HYPE', 'SOL', 'BTC', 'ETH', 'PEPE', 'WIF', 'BONK', 'SUI', 'NEAR', 'AAVE', 'RENDER', 'DOGE', 'AVAX'];
+  if (!topCoins.includes(sym)) topCoins.unshift(sym);
+  $('chartChips').innerHTML = topCoins.map(s => `<button class="btn${s === sym ? ' on' : ''}" onclick="loadChart('${s}')">${s}</button>`).join('');
+  const tvSym = CHARTS[sym] || ('BINANCE:' + sym + 'USDT');
+  const src = 'https://s.tradingview.com/widgetembed/?' + new URLSearchParams({ symbol: tvSym, interval: '60', theme: 'dark', style: '1', timezone: 'America/Chicago', hide_side_toolbar: '0', withdateranges: '1', locale: 'en' });
   $('tvChart').innerHTML = `<iframe title="${esc(sym)} chart" src="${src}" style="width:100%;height:100%;border:0" loading="lazy"></iframe>`;
 }
 
-// ------------------------------------------------------------------ boot
-function refreshAll(force) { loadSignals(); loadHL(); loadDash(force); loadQuotes(); }
+// ------------------------------------------------------------------ boot & continuous streams
+function refreshAll(force) {
+  loadSignals();
+  loadCockpit();
+  loadHL();
+  loadDash(force);
+  loadQuotes();
+}
+
 updateAudioUI();
+updateNotifyUI();
 go(view);
 renderPortfolio();
 runEntryCalc();
 refreshAll(false);
-setInterval(() => { if (!document.hidden && (view === 'signals' || view === 'hype')) { loadSignals(); loadHL(); } }, 5000);
-setInterval(() => { if (!document.hidden) { loadDash(false); loadQuotes(); } }, 60000);
+
+// 1. High-frequency price & buy-zone distance stream (3 seconds)
+setInterval(() => {
+  if (!document.hidden && (view === 'signals' || view === 'hype')) {
+    loadSignals();
+    loadHL();
+  }
+}, 3000);
+
+// 2. Breaking Trump tweets, VIP alpha & Pre-Trade Cockpit stream (15 seconds)
+setInterval(() => {
+  if (!document.hidden) {
+    loadCockpit();
+  }
+}, 15000);
+
+// 3. Full 84 Robinhood coin market quotes & portfolio sync (60 seconds)
+setInterval(() => {
+  if (!document.hidden) {
+    loadDash(false);
+    loadQuotes();
+  }
+}, 60000);
+
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAll(false); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>

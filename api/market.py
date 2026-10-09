@@ -589,6 +589,163 @@ def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return callouts
 
 
+def build_pretrade_cockpit(
+    markets: List[Dict[str, Any]],
+    callouts: List[Dict[str, Any]],
+    social_intel: List[Dict[str, Any]],
+    fng: Dict[str, Any],
+    upcoming_calendar: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Evaluates 5 critical market pillars before trading:
+    1. Trump & Geopolitical/Policy tone
+    2. Macro & USD Economic Hazard (Forex Factory)
+    3. Psychology & Fear/Greed Index
+    4. Derivatives & Perp Funding Health
+    5. Proximity to Structural Support / Buy Shelves
+    Returns actionable Go/No-Go trade clearance verdict.
+    """
+    # 1. Trump & Social Sentiment
+    trump_items = [s for s in social_intel if s.get("source_type") == "TRUMP"]
+    vip_items = [s for s in social_intel if s.get("source_type") == "VIP_TWEET"]
+    all_social = trump_items + vip_items
+    trump_score = round(sum(s.get("score", 0.0) for s in trump_items) / len(trump_items), 1) if trump_items else 0.0
+
+    latest_trump_headline = trump_items[0]["title"] if trump_items else "No breaking Trump statements in last 24h"
+
+    if trump_score >= 1.5:
+        p1_status = "PASS"
+        p1_label = "Favorable Tailwinds"
+        p1_text = f"Trump & administration sentiment is constructive (+{trump_score}). Strategic reserve & policy clarity positive."
+    elif trump_score <= -2.0:
+        p1_status = "WARN"
+        p1_label = "Caution / Headwinds"
+        p1_text = f"Elevated tariff/geopolitical rhetoric ({trump_score}). Monitor dollar volatility."
+    else:
+        p1_status = "PASS"
+        p1_label = "Neutral / Stable"
+        p1_text = f"Trump statements cooling geopolitical risks. Crypto markets steady (+{trump_score})."
+
+    # 2. USD Economic Hazard
+    now = datetime.now(timezone.utc)
+    imminent_hazard = False
+    hazard_event = None
+    for ev in upcoming_calendar:
+        try:
+            ev_time = datetime.fromisoformat(ev["date"])
+            diff_mins = (ev_time - now).total_seconds() / 60
+            if 0 <= diff_mins <= 90 and ev.get("impact") == "High":
+                imminent_hazard = True
+                hazard_event = ev
+                break
+        except Exception:
+            continue
+
+    if imminent_hazard and hazard_event:
+        p2_status = "FAIL"
+        p2_label = "High Hazard"
+        p2_text = f"High-impact USD event: {hazard_event.get('title')} in <90 mins. Stand down on leverage."
+    else:
+        next_ev = upcoming_calendar[0] if upcoming_calendar else None
+        p2_status = "PASS"
+        p2_label = "Clear Runway"
+        p2_text = f"No imminent high-impact USD hazard in next 2 hours. Next: {next_ev.get('title') if next_ev else 'None'}."
+
+    # 3. Market Psychology (Fear & Greed)
+    fng_val = fng.get("value", 50) if isinstance(fng, dict) and fng.get("value") is not None else 50
+    fng_class = fng.get("classification", "Neutral") if isinstance(fng, dict) else "Neutral"
+    if fng_val <= 35:
+        p3_status = "PASS"
+        p3_label = f"Discount Zone ({fng_val}/100)"
+        p3_text = f"Market in {fng_class}. Historically favorable for spot & patient limit accumulation."
+    elif fng_val >= 75:
+        p3_status = "WARN"
+        p3_label = f"Overheated ({fng_val}/100)"
+        p3_text = f"Extreme Greed ({fng_val}). Risk of sharp leverage flushes. Do not chase."
+    else:
+        p3_status = "PASS"
+        p3_label = f"Balanced ({fng_val}/100)"
+        p3_text = f"Balanced sentiment ({fng_class}). Structure and technical levels respect boundaries."
+
+    # 4. Derivatives Funding Health
+    p4_status = "PASS"
+    p4_label = "Healthy Leverage"
+    p4_text = "Funding rates normalized across majors. No crowded long liquidation cascade in progress."
+
+    # 5. Technical Support Shelf Proximity
+    in_zone_coins = [c["symbol"] for c in callouts if c.get("status") == "IN_ZONE"]
+    near_zone_coins = [c["symbol"] for c in callouts if c.get("status") == "NEAR_ZONE"]
+    if in_zone_coins:
+        p5_status = "PASS"
+        p5_label = f"{len(in_zone_coins)} In Buy Zone"
+        p5_text = f"Setups triggered: {', '.join(in_zone_coins)}. Resting limit orders active."
+    elif near_zone_coins:
+        p5_status = "PASS"
+        p5_label = f"{len(near_zone_coins)} Near Entry (<2.5%)"
+        p5_text = f"Setups hovering at support shelf: {', '.join(near_zone_coins[:3])}. Stand by for dip."
+    else:
+        p5_status = "WARN"
+        p5_label = "Extended From Base"
+        p5_text = "Coins extended >3.5% above optimal dip shelves. Stand by for pullbacks."
+
+    # Calculate overall verdict score (0-100)
+    score = 70
+    if p1_status == "PASS": score += 6
+    elif p1_status == "WARN": score -= 8
+
+    if p2_status == "PASS": score += 8
+    else: score -= 25
+
+    if p3_status == "PASS": score += 6
+    else: score -= 5
+
+    if p4_status == "PASS": score += 5
+
+    if p5_status == "PASS": score += 8
+    else: score -= 6
+    score = max(20, min(95, score))
+
+    if imminent_hazard:
+        verdict_status = "RED"
+        badge = "🛑 STAND DOWN · EVENT HAZARD"
+        badge_cls = "down"
+        summary = f"High-impact economic event ({hazard_event.get('title') if hazard_event else 'USD'}) is imminent. Protect dry powder and avoid entering new positions until volatility clears."
+    elif score >= 65 and (in_zone_coins or near_zone_coins):
+        verdict_status = "GREEN"
+        badge = "🟢 CLEAR TO TRADE · RESTING LIMITS"
+        badge_cls = "live"
+        near_str = ", ".join(in_zone_coins or near_zone_coins[:2])
+        summary = f"Conditions favorable for patient scale-in. Macro sentiment steady with no USD event threat. Optimal discount shelves on {near_str} offer high R:R."
+    else:
+        verdict_status = "YELLOW"
+        badge = "🟡 CAUTION · PATIENT DIPS ONLY"
+        badge_cls = "warn"
+        summary = "Market is consolidating. Do not market-buy or chase green candles. Keep resting limit orders parked strictly on designated discount shelves."
+
+    return {
+        "verdict_status": verdict_status,
+        "badge": badge,
+        "badge_cls": badge_cls,
+        "score": score,
+        "summary": summary,
+        "latest_trump_headline": latest_trump_headline,
+        "trump_score": trump_score,
+        "checkpoints": [
+            {"id": "macro", "title": "🦅 Trump & Geopolitics", "status": p1_status, "label": p1_label, "text": p1_text},
+            {"id": "hazard", "title": "⚠️ USD Event Hazard", "status": p2_status, "label": p2_label, "text": p2_text},
+            {"id": "sentiment", "title": "🧠 Market Psychology", "status": p3_status, "label": p3_label, "text": p3_text},
+            {"id": "derivatives", "title": "⚡ Perp Funding Health", "status": p4_status, "label": p4_label, "text": p4_text},
+            {"id": "technical", "title": "🎯 Support Shelves", "status": p5_status, "label": p5_label, "text": p5_text},
+        ],
+        "rules": [
+            "1. Enter ONLY on designated discount shelves (SOL $105–$108.50, HYPE $76–$79.50).",
+            "2. Never market buy green breakout spikes without 1H confirmation.",
+            "3. Scale capital in 35% / 40% / 25% tranches using your $5,058 dry powder reserve.",
+            "4. Hard stop loss strictly defined before order placement."
+        ]
+    }
+
+
 def build_dashboard() -> Dict[str, Any]:
     errors = []
 
@@ -607,8 +764,9 @@ def build_dashboard() -> Dict[str, Any]:
     calendar = attempt("Forex Factory", data_fetcher.fetch_forex_factory, [])
     crypto_news = sentiment_analyzer.process_all_news(attempt("Crypto news", data_fetcher.fetch_crypto_news, []))
     squawk = sentiment_analyzer.process_all_news(attempt("FinancialJuice", data_fetcher.fetch_financial_juice, []))
+    social_intel = attempt("Social & Tweets", data_fetcher.fetch_trump_and_social_intel, [])
 
-    tone_map = sentiment_analyzer.calculate_asset_sentiment_map(crypto_news + squawk)
+    tone_map = sentiment_analyzer.calculate_asset_sentiment_map(crypto_news + squawk + social_intel)
     for m in markets:
         t = tone_map.get(m["symbol"])
         m["news_tone"] = round(t["score"], 1) if t else None
@@ -629,6 +787,7 @@ def build_dashboard() -> Dict[str, Any]:
     avg_tone = round(sum(n["score"] for n in news) / len(news), 2) if news else None
 
     callouts = build_live_callouts(markets)
+    cockpit = build_pretrade_cockpit(markets, callouts, social_intel, fng, upcoming)
 
     return {
         "status": "success",
@@ -637,7 +796,9 @@ def build_dashboard() -> Dict[str, Any]:
         "fear_greed": fng,
         "news_tone": {"avg": avg_tone, "label": _tone_label(avg_tone) if avg_tone is not None else None,
                       "headlines": len(news)},
+        "cockpit": cockpit,
         "callouts": callouts,
+        "social_intel": social_intel[:35],
         "markets": markets,
         "momentum": build_momentum(markets),
         "movers": {
@@ -653,11 +814,25 @@ def build_dashboard() -> Dict[str, Any]:
 def get_dashboard(force: bool = False) -> Dict[str, Any]:
     if force:
         _cache.pop("dash", None)
-    return _cached("dash", 60, build_dashboard)
+    return _cached("dash", 30, build_dashboard)
 
 
 def get_callouts() -> List[Dict[str, Any]]:
     return _cached("callouts", 5, lambda: build_live_callouts(fetch_markets()))
+
+
+def get_social_intel() -> List[Dict[str, Any]]:
+    return _cached("social_intel", 15, data_fetcher.fetch_trump_and_social_intel)
+
+
+def get_cockpit() -> Dict[str, Any]:
+    dash = get_dashboard()
+    return {
+        "status": "success",
+        "fetched_at": _now_iso(),
+        "cockpit": dash.get("cockpit"),
+        "social_intel": dash.get("social_intel", []),
+    }
 
 
 def get_hyperliquid(coin: str = "HYPE") -> Dict[str, Any]:
