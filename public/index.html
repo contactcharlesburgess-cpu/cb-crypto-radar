@@ -118,6 +118,55 @@
     .ticker-pill { display: inline-flex; align-items: center; gap: 6px; }
     .ticker-pill b { color: var(--text); font-weight: 700; }
     .ticker-pill .p { color: var(--olive); }
+
+    /* Live Signals / Entry Sniper Radar */
+    .signal-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 16px; margin-bottom: 14px; position: relative; transition: all 0.2s ease;
+    }
+    .signal-card:hover { border-color: rgba(194,205,148,.35); background: var(--card-hover); }
+    .signal-card.in-zone {
+      border-color: rgba(134,239,172,.6);
+      box-shadow: 0 0 20px rgba(134,239,172,.15);
+      background: linear-gradient(180deg, rgba(134,239,172,0.06) 0%, var(--card) 100%);
+    }
+    .signal-card.near-zone {
+      border-color: rgba(251,191,36,.45);
+      background: linear-gradient(180deg, rgba(251,191,36,0.04) 0%, var(--card) 100%);
+    }
+    .signal-header {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .signal-sym-block { display: flex; align-items: center; gap: 10px; }
+    .signal-sym { font-size: 20px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+    .signal-badge { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.02em; font-family: var(--mono); }
+    .signal-badge.live { background: rgba(134,239,172,.15); color: var(--green); border: 1px solid rgba(134,239,172,.4); }
+    .signal-badge.warn { background: rgba(251,191,36,.15); color: var(--amber); border: 1px solid rgba(251,191,36,.4); }
+    .signal-badge.muted { background: rgba(158,172,149,.1); color: var(--muted); border: 1px solid var(--line); }
+    .signal-badge.olive { background: rgba(194,205,148,.18); color: var(--olive); border: 1px solid rgba(194,205,148,.4); }
+    .signal-badge.down { background: rgba(248,113,113,.15); color: var(--red); border: 1px solid rgba(248,113,113,.4); }
+
+    .signal-dist-meter {
+      height: 6px; border-radius: 999px; background: rgba(255,255,255,0.08);
+      position: relative; overflow: hidden; margin: 6px 0 12px;
+    }
+    .signal-dist-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+
+    .levels-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;
+    }
+    @media (max-width: 640px) { .levels-grid { grid-template-columns: repeat(2, 1fr); } }
+    .level-box {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+    }
+    .level-box .lbl { font-size: 10px; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
+    .level-box .val { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+
+    .signal-notes {
+      background: var(--surface); border-left: 3px solid var(--olive); border-radius: 0 8px 8px 0;
+      padding: 9px 12px; font-size: 12px; line-height: 1.5; color: #D6DEC7; margin-bottom: 12px;
+    }
+    .signal-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   </style>
 </head>
 <body>
@@ -140,21 +189,111 @@
 
   <div id="errors" class="notice" hidden></div>
 
+  <!-- ======================= LIVE ENTRY CALLOUTS / SNIPER RADAR ======================= -->
+  <section class="view on" id="v-signals">
+    <!-- Capital Posture & Dry Powder Banner -->
+    <div class="card" style="border-color:rgba(194,205,148,.4);background:linear-gradient(180deg,rgba(194,205,148,0.1) 0%,rgba(10,15,10,0.7) 100%);margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <span class="pill live" style="background:rgba(134,239,172,0.18);color:var(--green)">100% FLAT CASH RESERVE</span>
+          <b style="font-size:16px;margin-left:8px;color:var(--text)">$5,058.00 Dry Powder Ready</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn" id="btnSoundToggle" onclick="toggleAudioAlert()" style="font-size:11px;padding:5px 10px">
+            <span id="soundIcon">🔇</span> Audio Alert: <span id="soundStatus">OFF</span>
+          </button>
+          <span class="pill live" id="signalsLiveBadge">RADAR ACTIVE</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)">
+        <div><span class="dim">Strategy:</span> <b>Limit Sniper on Dips</b> (No chasing green candles)</div>
+        <div><span class="dim">Closest Setup:</span> <b style="color:var(--olive)" id="closestSetupSummary">Scanning…</b></div>
+        <div><span class="dim">Staged Tranches:</span> <b>35% / 40% / 25%</b> scaling ladder</div>
+      </div>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="card" style="margin-bottom:14px;padding:10px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div class="chips" id="signalChips">
+          <button class="btn on" onclick="setSignalFilter('all', this)">All Setups (<span id="cntAll">8</span>)</button>
+          <button class="btn" onclick="setSignalFilter('zone', this)">🟢 In Buy Zone (<span id="cntZone">0</span>)</button>
+          <button class="btn" onclick="setSignalFilter('near', this)">⏳ Near Entry &lt;2.5% (<span id="cntNear">4</span>)</button>
+          <button class="btn" onclick="setSignalFilter('core', this)">⭐ Core A+ (SOL/HYPE/BTC)</button>
+          <button class="btn" onclick="setSignalFilter('rh', this)">Robinhood Tradable</button>
+        </div>
+        <div class="dim" style="font-size:11px" id="signalsUpdated">Streaming 5s live</div>
+      </div>
+    </div>
+
+    <!-- Active Callouts List -->
+    <div id="signalsList">
+      <div class="empty">Scanning live orderbooks &amp; levels…</div>
+    </div>
+
+    <!-- Interactive Staged Capital Allocator Card -->
+    <div class="card" id="capitalAllocatorCard" style="border-color:rgba(194,205,148,0.3);margin-top:14px">
+      <h2><span>💰 $5,058 Dry Powder Tranche Calculator</span><small>Risk, size &amp; staged entries</small></h2>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+        Click <b>"Size Entry"</b> on any callout above to prefill, or select a coin below to calculate position sizing for your $5,058 cash reserve.
+      </div>
+      <div class="grid g4" style="margin-bottom:10px">
+        <label class="f">Coin
+          <select id="calcCoin" onchange="applyCalcPreset(this.value)">
+            <option value="SOL">SOL (Solana)</option>
+            <option value="HYPE">HYPE (Hyperliquid)</option>
+            <option value="BTC">BTC (Bitcoin)</option>
+            <option value="ETH">ETH (Ethereum)</option>
+            <option value="PEPE">PEPE (Pepe)</option>
+            <option value="SUI">SUI (Sui)</option>
+            <option value="NEAR">NEAR (Near)</option>
+            <option value="AAVE">AAVE (Aave)</option>
+          </select>
+        </label>
+        <label class="f">Total Allocation ($)
+          <input id="calcCapital" type="number" step="50" value="1500" oninput="runEntryCalc()">
+        </label>
+        <label class="f">Planned Entry ($)
+          <input id="calcEntry" type="number" step="any" value="108.00" oninput="runEntryCalc()">
+        </label>
+        <label class="f">Hard Stop Loss ($)
+          <input id="calcStop" type="number" step="any" value="103.50" oninput="runEntryCalc()">
+        </label>
+      </div>
+      <div class="grid g2" style="margin-bottom:12px">
+        <label class="f">Target 1 ($)
+          <input id="calcT1" type="number" step="any" value="122.00" oninput="runEntryCalc()">
+        </label>
+        <label class="f">Target 2 ($)
+          <input id="calcT2" type="number" step="any" value="135.00" oninput="runEntryCalc()">
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="dim" style="font-size:11px;align-self:center">Quick Sizing:</span>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=1000;runEntryCalc()">$1,000 (20%)</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=1517;runEntryCalc()">$1,517 (30%)</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=2023;runEntryCalc()">$2,023 (40%)</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=5058;runEntryCalc()">$5,058 (100% MAX)</button>
+      </div>
+      <div class="result" id="calcResults"></div>
+    </div>
+  </section>
+
   <!-- ======================= HYPE ======================= -->
   <section class="view" id="v-hype">
-    <!-- Active Robinhood Holdings & Working Order Banner -->
+    <!-- Cash Reserve & Posture Banner -->
     <div class="card" style="border-color:rgba(194,205,148,.35);background:linear-gradient(180deg,rgba(194,205,148,0.08) 0%,rgba(10,15,10,0.6) 100%);margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
-          <span class="pill live">ACTIVE ROBINHOOD POSITION</span>
-          <b style="font-size:15px;margin-left:8px">23.1532 HYPE @ $85.45 avg</b>
+          <span class="pill live" style="background:rgba(134,239,172,0.15);color:var(--green)">100% FLAT CASH RESERVE</span>
+          <b style="font-size:15px;margin-left:8px">$5,058.00 Dry Powder Sidelined</b>
         </div>
-        <div class="mono" style="font-size:13px">Cost: <b>$1,997.21</b> (incl. $18.79 fee)</div>
+        <div class="mono" style="font-size:13px;color:var(--olive)">Discipline First · Standing By</div>
       </div>
       <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px">
-        <div><span class="dim">Break-even (buy fee):</span> <b style="color:var(--olive)">$86.26</b></div>
-        <div><span class="dim">Break-even (round-trip fee):</span> <b style="color:var(--olive)">$87.08</b></div>
-        <div><span class="dim">Working Order:</span> <span class="pill warn">Stop Buy 17.0009 @ $87.40 (~$1.5k)</span></div>
+        <div><span class="dim">Current Posture:</span> <b>100% Cash Preserved</b> (Prior positions exited cleanly)</div>
+        <div><span class="dim">Optimal Macro Dip Shelf:</span> <b style="color:var(--olive)">$76.00 – $79.50</b> (OTE 61.8% Retest)</div>
+        <div><span class="dim">Breakout Reclaim:</span> <span class="pill warn">Reclaim above $86.50 on 1H</span></div>
       </div>
     </div>
 
@@ -313,7 +452,8 @@
   <div class="foot">Data: Hyperliquid, CoinGecko, Coinbase, Yahoo Finance, Alternative.me, Forex Factory, news RSS. Prices can lag. Nothing here is financial advice.</div>
 </div>
 
-<nav class="tabs"><div class="in">
+<nav class="tabs"><div class="in" style="grid-template-columns: repeat(6, 1fr); max-width: 620px;">
+  <button data-v="signals" class="on" onclick="go('signals')"><span class="ic">🎯</span>Signals</button>
   <button data-v="hype" onclick="go('hype')"><span class="ic">⚡</span>HYPE</button>
   <button data-v="port" onclick="go('port')"><span class="ic">💼</span>Portfolio</button>
   <button data-v="mkts" onclick="go('mkts')"><span class="ic">📊</span>Markets</button>
@@ -392,7 +532,296 @@ function go(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.toggle('on', el.id === 'v-' + v));
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'chart') loadChart(store.get('cbr_chart', 'HYPE'));
+  if (v === 'signals') loadSignals();
   window.scrollTo(0, 0);
+}
+
+// ------------------------------------------------------------------ Live Signals & Capital Calculator
+let callouts = [];
+let signalFilter = 'all';
+let audioAlertEnabled = store.get('cbr_audio_alert', false);
+let lastChimedSymbol = null;
+
+function updateAudioUI() {
+  const ico = $('soundIcon'), st = $('soundStatus'), btn = $('btnSoundToggle');
+  if (ico) ico.textContent = audioAlertEnabled ? '🔔' : '🔇';
+  if (st) st.textContent = audioAlertEnabled ? 'ON' : 'OFF';
+  if (btn) btn.className = 'btn ' + (audioAlertEnabled ? 'primary' : '');
+}
+
+function toggleAudioAlert() {
+  audioAlertEnabled = !audioAlertEnabled;
+  store.set('cbr_audio_alert', audioAlertEnabled);
+  updateAudioUI();
+  if (audioAlertEnabled) {
+    playSignalChime();
+  }
+}
+
+function playSignalChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.12); // A5
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch (e) {}
+}
+
+function checkAudioAlert() {
+  if (!audioAlertEnabled) return;
+  const inZone = callouts.find(c => c.status === 'IN_ZONE');
+  if (inZone && inZone.symbol !== lastChimedSymbol) {
+    lastChimedSymbol = inZone.symbol;
+    playSignalChime();
+  } else if (!inZone) {
+    lastChimedSymbol = null;
+  }
+}
+
+async function loadSignals() {
+  try {
+    const res = await getJSON('/api/signals');
+    callouts = res.callouts || [];
+    renderSignals();
+    checkAudioAlert();
+    $('signalsUpdated').textContent = 'Live · ' + new Date(res.fetched_at || Date.now()).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  } catch (e) {
+    console.error('Signals error:', e);
+  }
+}
+
+function setSignalFilter(filter, btn) {
+  signalFilter = filter;
+  document.querySelectorAll('#signalChips button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  renderSignals();
+}
+
+function renderSignals() {
+  if (!callouts.length) {
+    $('signalsList').innerHTML = '<div class="empty">No active signals found.</div>';
+    return;
+  }
+
+  // Update counts
+  const nAll = callouts.length;
+  const nZone = callouts.filter(c => c.status === 'IN_ZONE').length;
+  const nNear = callouts.filter(c => c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5)).length;
+  if ($('cntAll')) $('cntAll').textContent = nAll;
+  if ($('cntZone')) $('cntZone').textContent = nZone;
+  if ($('cntNear')) $('cntNear').textContent = nNear;
+
+  // Closest setup summary
+  const sortedByDist = [...callouts].sort((a, b) => {
+    const da = a.distance_pct == null ? 999 : Math.abs(a.distance_pct);
+    const db = b.distance_pct == null ? 999 : Math.abs(b.distance_pct);
+    return da - db;
+  });
+  if (sortedByDist.length && $('closestSetupSummary')) {
+    const top = sortedByDist[0];
+    const distText = top.status === 'IN_ZONE' ? '🟢 IN BUY ZONE NOW' : (top.distance_pct > 0 ? `+${top.distance_pct}% away` : `${top.distance_pct}% under`);
+    $('closestSetupSummary').textContent = `${top.symbol}: ${distText} ($${top.entry_low}–$${top.entry_high})`;
+  }
+
+  // Filter list
+  let list = callouts.slice();
+  if (signalFilter === 'zone') {
+    list = list.filter(c => c.status === 'IN_ZONE');
+  } else if (signalFilter === 'near') {
+    list = list.filter(c => c.status === 'IN_ZONE' || c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5));
+  } else if (signalFilter === 'core') {
+    list = list.filter(c => ['SOL', 'HYPE', 'BTC'].includes(c.symbol));
+  } else if (signalFilter === 'rh') {
+    list = list.filter(c => c.robinhood);
+  }
+
+  // Sort list: IN_ZONE first, then nearest distance
+  list.sort((a, b) => {
+    if (a.status === 'IN_ZONE' && b.status !== 'IN_ZONE') return -1;
+    if (b.status === 'IN_ZONE' && a.status !== 'IN_ZONE') return 1;
+    const da = a.distance_pct == null ? 999 : Math.abs(a.distance_pct);
+    const db = b.distance_pct == null ? 999 : Math.abs(b.distance_pct);
+    return da - db;
+  });
+
+  if (!list.length) {
+    $('signalsList').innerHTML = `<div class="empty">No setups matching this filter. Switch to "All Setups" to view all ${callouts.length} coins.</div>`;
+    return;
+  }
+
+  $('signalsList').innerHTML = list.map(c => {
+    const isZone = c.status === 'IN_ZONE';
+    const isNear = c.status === 'NEAR_ZONE' || (c.distance_pct != null && c.distance_pct <= 2.5);
+    const cardCls = isZone ? 'signal-card in-zone' : (isNear ? 'signal-card near-zone' : 'signal-card');
+
+    let distFillPct = 15;
+    let distColor = 'var(--dim)';
+    if (isZone) { distFillPct = 100; distColor = 'var(--green)'; }
+    else if (c.distance_pct != null) {
+      distFillPct = Math.max(10, Math.min(100, Math.round(100 - (Math.abs(c.distance_pct) * 8))));
+      distColor = c.distance_pct <= 2.5 ? 'var(--amber)' : 'var(--olive)';
+    }
+
+    return `
+      <div class="${cardCls}">
+        <div class="signal-header">
+          <div class="signal-sym-block">
+            <span class="signal-sym">${esc(c.symbol)}</span>
+            <div>
+              <div style="font-weight:700;font-size:13px">${esc(c.name)} <span class="dim" style="font-size:11px">· ${esc(c.sector)}</span></div>
+              <div class="dim" style="font-size:11px">${c.robinhood ? '🟢 Robinhood Crypto tradable' : 'Perp / DEX only'} · Conviction: <b style="color:var(--text)">${esc(c.conviction)}</b></div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text)">
+              ${px(c.price)}
+              <span class="${cls(c.change_24h)}" style="font-size:12px;margin-left:4px">${pct(c.change_24h, 1)}</span>
+            </div>
+            <span class="signal-badge ${esc(c.badge_cls || 'muted')}">${esc(c.badge)}</span>
+          </div>
+        </div>
+
+        <!-- Distance Meter -->
+        <div class="signal-dist-meter">
+          <div class="signal-dist-fill" style="width:${distFillPct}%;background:${distColor}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11.5px" class="dim">
+          <span><b>Distance to buy shelf:</b> <span class="mono" style="color:${isZone ? 'var(--green)' : isNear ? 'var(--amber)' : 'var(--text)'};font-weight:700">${c.distance_pct != null ? (c.distance_pct > 0 ? '+' : '') + c.distance_pct + '%' : 'At shelf'}</span></span>
+          <span><b>Timeframe:</b> ${esc(c.timeframe || '4H')} · ${esc(c.setup_type || 'Dip Accumulation')}</span>
+        </div>
+
+        <!-- Levels Grid -->
+        <div class="levels-grid">
+          <div class="level-box" style="border-color:rgba(194,205,148,0.3)">
+            <div class="lbl">Buy Shelf (Dip Zone)</div>
+            <div class="val" style="color:var(--olive)">${px(c.entry_low)} – ${px(c.entry_high)}</div>
+          </div>
+          <div class="level-box" style="border-color:rgba(248,113,113,0.3)">
+            <div class="lbl">Hard Stop Loss</div>
+            <div class="val" style="color:var(--red)">${px(c.stop_loss)}</div>
+          </div>
+          <div class="level-box" style="border-color:rgba(134,239,172,0.3)">
+            <div class="lbl">Targets (T1 / T2)</div>
+            <div class="val" style="color:var(--green)">${px(c.target_1)} / ${px(c.target_2)}</div>
+          </div>
+          <div class="level-box">
+            <div class="lbl">Risk : Reward</div>
+            <div class="val" style="color:var(--text)">${c.rr_ratio ? c.rr_ratio + ' : 1' : '3.5 : 1'}</div>
+          </div>
+        </div>
+
+        <!-- Tactical Notes -->
+        <div class="signal-notes">
+          <b>Tactical Execution:</b> ${esc(c.notes)}
+          ${c.reclaim_trigger ? `<br><span class="dim" style="font-size:11px">Alternative Reclaim Trigger: Buy stop above <b>${px(c.reclaim_trigger)}</b> on 1H close confirmation.</span>` : ''}
+        </div>
+
+        <!-- Actions -->
+        <div class="signal-actions">
+          <button class="btn" onclick="copyOrderDetails('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1})">📋 Copy Plan</button>
+          <button class="btn" onclick="go('chart');loadChart('${esc(c.symbol in CHARTS ? c.symbol : 'HYPE')}');">📈 Chart</button>
+          <button class="btn primary" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1}, ${c.target_2})">💰 Size Entry ($5k Reserve)</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function copyOrderDetails(sym, entry, stop, t1) {
+  const text = `CB Sniper Plan: ${sym} | Buy Shelf: ${px(entry)} | Hard Stop: ${px(stop)} | Take Profit: ${px(t1)}`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`Copied ${sym} plan to clipboard:\n${text}`);
+  }).catch(() => {
+    alert(text);
+  });
+}
+
+function sizeEntryForCoin(sym, entry, stop, t1, t2) {
+  if ($('calcCoin')) $('calcCoin').value = sym;
+  if ($('calcEntry')) $('calcEntry').value = entry;
+  if ($('calcStop')) $('calcStop').value = stop;
+  if ($('calcT1')) $('calcT1').value = t1;
+  if ($('calcT2')) $('calcT2').value = t2;
+  runEntryCalc();
+  $('capitalAllocatorCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function applyCalcPreset(sym) {
+  const c = callouts.find(x => x.symbol === sym);
+  if (!c) return;
+  if ($('calcEntry')) $('calcEntry').value = c.entry_high;
+  if ($('calcStop')) $('calcStop').value = c.stop_loss;
+  if ($('calcT1')) $('calcT1').value = c.target_1;
+  if ($('calcT2')) $('calcT2').value = c.target_2;
+  runEntryCalc();
+}
+
+function runEntryCalc() {
+  const cap = +$('calcCapital').value || 1500;
+  const entry = +$('calcEntry').value || 1;
+  const stop = +$('calcStop').value || 0;
+  const t1 = +$('calcT1').value || 0;
+  const t2 = +$('calcT2').value || 0;
+  const coin = $('calcCoin')?.value || 'COIN';
+
+  if (!entry || entry <= 0 || cap <= 0) {
+    $('calcResults').innerHTML = '<span class="dim">Enter allocation and entry price.</span>';
+    return;
+  }
+
+  const tokens = cap / entry;
+  const riskPerToken = Math.max(0, entry - stop);
+  const totalRiskUsd = riskPerToken * tokens;
+  const riskPctCap = (totalRiskUsd / cap) * 100;
+
+  const gainT1 = t1 > entry ? (t1 - entry) * tokens : 0;
+  const rrT1 = totalRiskUsd > 0 ? (gainT1 / totalRiskUsd).toFixed(1) : '—';
+  const gainT2 = t2 > entry ? (t2 - entry) * tokens : 0;
+  const rrT2 = totalRiskUsd > 0 ? (gainT2 / totalRiskUsd).toFixed(1) : '—';
+
+  // 3-tranche staged scale-in
+  const tr1Cap = cap * 0.35, tr1Px = entry, tr1Tokens = tr1Cap / tr1Px;
+  const tr2Cap = cap * 0.40, tr2Px = entry * 0.985, tr2Tokens = tr2Cap / tr2Px;
+  const tr3Cap = cap * 0.25, tr3Px = entry * 0.970, tr3Tokens = tr3Cap / tr3Px;
+  const blendedTokens = tr1Tokens + tr2Tokens + tr3Tokens;
+  const blendedAvg = cap / blendedTokens;
+
+  $('calcResults').innerHTML = `
+    <div style="font-size:13px;margin-bottom:8px">
+      <b>${esc(coin)} Position Sizing for ${usd(cap)}:</b>
+      <b>${tokens.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${esc(coin)}</b> tokens
+    </div>
+    <div class="grid g2" style="gap:8px;margin-bottom:8px;font-size:12px">
+      <div class="stat"><div class="k">Downside Risk @ Stop (${px(stop)})</div>
+        <div class="v down">-${usd(totalRiskUsd)} (${riskPctCap.toFixed(1)}%)</div>
+      </div>
+      <div class="stat"><div class="k">Gain @ Target 1 (${px(t1)})</div>
+        <div class="v up">+${usd(gainT1)} (${rrT1}:1 R:R)</div>
+      </div>
+      <div class="stat"><div class="k">Gain @ Target 2 (${px(t2)})</div>
+        <div class="v up">+${usd(gainT2)} (${rrT2}:1 R:R)</div>
+      </div>
+      <div class="stat"><div class="k">Dry Powder Remaining</div>
+        <div class="v">${usd(Math.max(0, 5058 - cap))}</div>
+        <div class="s">${((5058 - cap)/5058 * 100).toFixed(0)}% of $5,058 untouched</div>
+      </div>
+    </div>
+    <div style="font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:8px" class="muted">
+      <b>Recommended Staged Ladder (35% / 40% / 25%):</b><br>
+      • Tranche 1 (35%): <b>${usd(tr1Cap)}</b> @ <b>${px(tr1Px)}</b> (${tr1Tokens.toFixed(2)} tokens)<br>
+      • Tranche 2 (40%): <b>${usd(tr2Cap)}</b> @ <b>${px(tr2Px)}</b> (${tr2Tokens.toFixed(2)} tokens)<br>
+      • Tranche 3 (25%): <b>${usd(tr3Cap)}</b> @ <b>${px(tr3Px)}</b> (${tr3Tokens.toFixed(2)} tokens)<br>
+      • Blended Avg Entry: <b style="color:var(--olive)">${px(blendedAvg)}</b> (${blendedTokens.toFixed(2)} total tokens)
+    </div>
+  `;
 }
 
 // ------------------------------------------------------------------ HYPE
@@ -724,11 +1153,13 @@ function loadChart(sym) {
 }
 
 // ------------------------------------------------------------------ boot
-function refreshAll(force) { loadHL(); loadDash(force); loadQuotes(); }
+function refreshAll(force) { loadSignals(); loadHL(); loadDash(force); loadQuotes(); }
+updateAudioUI();
 go(view);
 renderPortfolio();
+runEntryCalc();
 refreshAll(false);
-setInterval(() => { if (!document.hidden && view === 'hype') loadHL(); }, 10000);
+setInterval(() => { if (!document.hidden && (view === 'signals' || view === 'hype')) { loadSignals(); loadHL(); } }, 5000);
 setInterval(() => { if (!document.hidden) { loadDash(false); loadQuotes(); } }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshAll(false); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});

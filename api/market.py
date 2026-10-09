@@ -365,6 +365,230 @@ def _tone_label(score: float) -> str:
     return "Negative"
 
 
+# ----------------------------------------------------------------------------
+# Live Entry Callouts & Sniper Radar
+# ----------------------------------------------------------------------------
+
+CALLOUT_CONFIGS = {
+    "HYPE": {
+        "name": "Hyperliquid",
+        "sector": "L1 / DEX Perps",
+        "robinhood": True,
+        "entry_low": 76.00,
+        "entry_high": 79.50,
+        "reclaim_trigger": 86.50,
+        "stop_loss": 73.50,
+        "target_1": 92.00,
+        "target_2": 100.00,
+        "timeframe": "4H / Daily",
+        "setup_type": "Macro Liquidity Sweep & Demand Shelf",
+        "notes": "Optimal bids sit at mid-September shelf ($76.00–$79.50). Alternatively, wait for clean 1H reclaim above $86.50 before entering.",
+        "conviction": "HIGH (A+)",
+    },
+    "SOL": {
+        "name": "Solana",
+        "sector": "Layer 1 Ecosystem",
+        "robinhood": True,
+        "entry_low": 105.00,
+        "entry_high": 108.50,
+        "reclaim_trigger": 112.50,
+        "stop_loss": 103.50,
+        "target_1": 122.00,
+        "target_2": 135.00,
+        "timeframe": "4H / Daily",
+        "setup_type": "Wick Low Retest & OTE Discount",
+        "notes": "Testing the $107.90 wick sweep base. Clean limit entry between $105–$108.50 with stop strictly below $103.50.",
+        "conviction": "HIGH (A+)",
+    },
+    "BTC": {
+        "name": "Bitcoin",
+        "sector": "Macro Reserve",
+        "robinhood": True,
+        "entry_low": 80000.00,
+        "entry_high": 81500.00,
+        "reclaim_trigger": 83500.00,
+        "stop_loss": 78800.00,
+        "target_1": 88000.00,
+        "target_2": 94000.00,
+        "timeframe": "Daily",
+        "setup_type": "Institutional Liquidity Pool Retest",
+        "notes": "Macro support at psychological $80k round level. Strong risk/reward buffer on any flush into $80k–$81.5k.",
+        "conviction": "HIGH (A+)",
+    },
+    "ETH": {
+        "name": "Ethereum",
+        "sector": "Smart Contract L1",
+        "robinhood": True,
+        "entry_low": 2400.00,
+        "entry_high": 2440.00,
+        "reclaim_trigger": 2520.00,
+        "stop_loss": 2360.00,
+        "target_1": 2680.00,
+        "target_2": 2850.00,
+        "timeframe": "4H / Daily",
+        "setup_type": "Consolidation Range Low Defense",
+        "notes": "Accumulate in $2,400–$2,440 discount block. Target $2,680+ relief expansion with stop below $2,360.",
+        "conviction": "MEDIUM-HIGH",
+    },
+    "SUI": {
+        "name": "Sui",
+        "sector": "High-Beta Layer 1",
+        "robinhood": True,
+        "entry_low": 0.95,
+        "entry_high": 1.02,
+        "reclaim_trigger": 1.10,
+        "stop_loss": 0.90,
+        "target_1": 1.25,
+        "target_2": 1.48,
+        "timeframe": "4H",
+        "setup_type": "Sub-$1.00 Discount Accumulation",
+        "notes": "High-beta runner. Accumulate near or under $1.00 shelf with tight stop below $0.90.",
+        "conviction": "MEDIUM-HIGH",
+    },
+    "NEAR": {
+        "name": "NEAR Protocol",
+        "sector": "AI & Layer 1",
+        "robinhood": True,
+        "entry_low": 4.25,
+        "entry_high": 4.50,
+        "reclaim_trigger": 4.90,
+        "stop_loss": 3.98,
+        "target_1": 5.40,
+        "target_2": 6.20,
+        "timeframe": "4H",
+        "setup_type": "Trendline Retest & Fair Value Gap",
+        "notes": "AI narrative momentum. Limit bids around $4.25–$4.50 offer favorable R:R. Risk capped to ~7%.",
+        "conviction": "MEDIUM-HIGH",
+    },
+    "AAVE": {
+        "name": "Aave",
+        "sector": "DeFi Blue Chip",
+        "robinhood": True,
+        "entry_low": 150.00,
+        "entry_high": 158.00,
+        "reclaim_trigger": 172.00,
+        "stop_loss": 142.00,
+        "target_1": 185.00,
+        "target_2": 210.00,
+        "timeframe": "Daily",
+        "setup_type": "DeFi Leader Consolidation",
+        "notes": "Leading altcoin on relative strength. Bids in $150–$158 zone offer 3:1+ R:R toward $185+.",
+        "conviction": "HIGH (A+)",
+    },
+    "PEPE": {
+        "name": "Pepe",
+        "sector": "Meme / Speculative Beta",
+        "robinhood": True,
+        "entry_low": 0.00000360,
+        "entry_high": 0.00000385,
+        "reclaim_trigger": 0.00000410,
+        "stop_loss": 0.00000335,
+        "target_1": 0.00000460,
+        "target_2": 0.00000540,
+        "timeframe": "4H",
+        "setup_type": "Range Low Sweep & Reversal",
+        "notes": "High volatility momentum play. Enter strictly on range lows ($0.00000360–$0.00000385). Never chase green spikes.",
+        "conviction": "SPECULATIVE",
+    },
+}
+
+
+def build_live_callouts(markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    mids = data_fetcher.fetch_hyperliquid_mids()
+    px_map = {m["symbol"]: (m.get("price"), m.get("change_24h")) for m in markets}
+
+    callouts = []
+    for sym, cfg in CALLOUT_CONFIGS.items():
+        price = None
+        chg = None
+        if sym in mids and mids[sym] is not None:
+            price = mids[sym]
+        elif sym == "PEPE" and "kPEPE" in mids and mids["kPEPE"] is not None:
+            price = mids["kPEPE"] / 1000.0
+        elif sym in px_map and px_map[sym][0] is not None:
+            price = px_map[sym][0]
+
+        if price is None and sym in px_map:
+            price = px_map[sym][0]
+        if price is None:
+            continue
+
+        if chg is None and sym in px_map:
+            chg = px_map[sym][1]
+
+        elo, ehi = cfg["entry_low"], cfg["entry_high"]
+        stop = cfg["stop_loss"]
+        t1, t2 = cfg["target_1"], cfg["target_2"]
+        avg_e = (elo + ehi) / 2
+        risk = max(avg_e - stop, 0.000001)
+        rew = max(t1 - avg_e, 0)
+        rr = round(rew / risk, 1)
+
+        if elo <= price <= ehi:
+            status = "IN_ZONE"
+            badge = "🟢 IN BUY ZONE"
+            badge_cls = "live"
+            desc = f"Price is inside optimal entry range ({elo} – {ehi}). Limit orders ready."
+            dist_pct = 0.0
+        elif price > ehi:
+            dist = round((price - ehi) / ehi * 100, 1)
+            if dist <= 3.5:
+                status = "NEAR_ZONE"
+                badge = "⏳ NEAR ENTRY (WAIT DIP)"
+                badge_cls = "warn"
+                desc = f"Hovering +{dist}% above entry shelf. Standing by for dip into {elo}–{ehi}."
+            else:
+                status = "WAIT_PULLBACK"
+                badge = "⏱ WAITING FOR PULLBACK"
+                badge_cls = "muted"
+                desc = f"Extended +{dist}% above entry zone. Do not FOMO chase."
+            dist_pct = dist
+        else:
+            if price >= stop:
+                dist = round((elo - price) / elo * 100, 1)
+                status = "DEEP_DISCOUNT"
+                badge = "⚡ DEEP DISCOUNT WICK"
+                badge_cls = "olive"
+                desc = f"Swept -{dist}% below base. High reward accumulation if held above ${stop}."
+                dist_pct = -dist
+            else:
+                status = "STOPPED"
+                badge = "🛑 STOPPED OUT / AVOID"
+                badge_cls = "down"
+                desc = f"Broke below hard stop (${stop}). Stand down until structure reclaims."
+                dist_pct = None
+
+        callouts.append({
+            "symbol": sym,
+            "name": cfg["name"],
+            "sector": cfg["sector"],
+            "price": price,
+            "change_24h": chg,
+            "status": status,
+            "badge": badge,
+            "badge_cls": badge_cls,
+            "desc": desc,
+            "distance_pct": dist_pct,
+            "entry_low": elo,
+            "entry_high": ehi,
+            "reclaim_trigger": cfg["reclaim_trigger"],
+            "stop_loss": stop,
+            "target_1": t1,
+            "target_2": t2,
+            "rr_ratio": rr,
+            "timeframe": cfg["timeframe"],
+            "setup_type": cfg["setup_type"],
+            "notes": cfg["notes"],
+            "conviction": cfg["conviction"],
+            "robinhood": cfg["robinhood"],
+        })
+
+    # Sort so IN_ZONE and NEAR_ZONE appear at the top
+    order_weight = {"IN_ZONE": 0, "NEAR_ZONE": 1, "DEEP_DISCOUNT": 2, "WAIT_PULLBACK": 3, "STOPPED": 4}
+    callouts.sort(key=lambda c: (order_weight.get(c["status"], 5), abs(c["distance_pct"] or 999)))
+    return callouts
+
+
 def build_dashboard() -> Dict[str, Any]:
     errors = []
 
@@ -404,6 +628,8 @@ def build_dashboard() -> Dict[str, Any]:
     news = sorted(crypto_news + squawk, key=lambda n: abs(n.get("score", 0)), reverse=True)
     avg_tone = round(sum(n["score"] for n in news) / len(news), 2) if news else None
 
+    callouts = build_live_callouts(markets)
+
     return {
         "status": "success",
         "fetched_at": _now_iso(),
@@ -411,6 +637,7 @@ def build_dashboard() -> Dict[str, Any]:
         "fear_greed": fng,
         "news_tone": {"avg": avg_tone, "label": _tone_label(avg_tone) if avg_tone is not None else None,
                       "headlines": len(news)},
+        "callouts": callouts,
         "markets": markets,
         "momentum": build_momentum(markets),
         "movers": {
@@ -429,5 +656,10 @@ def get_dashboard(force: bool = False) -> Dict[str, Any]:
     return _cached("dash", 60, build_dashboard)
 
 
+def get_callouts() -> List[Dict[str, Any]]:
+    return _cached("callouts", 5, lambda: build_live_callouts(fetch_markets()))
+
+
 def get_hyperliquid(coin: str = "HYPE") -> Dict[str, Any]:
     return _cached(f"hl:{coin}", 5, lambda: fetch_hyperliquid(coin))
+
