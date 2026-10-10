@@ -317,6 +317,40 @@
       padding: 2px 7px; font-family: var(--mono); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
     }
     .copy-chip:hover { background: var(--olive); color: #040504; font-weight: 800; }
+
+    /* Live 5-Tile Market Heartbeat Strip */
+    .pulse-strip {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;
+    }
+    @media (max-width: 820px) { .pulse-strip { grid-template-columns: repeat(2, 1fr); } }
+    .pulse-tile {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .pulse-tile:hover { border-color: rgba(194,205,148,0.45); background: var(--card-hover); }
+    .pulse-tile .pt-k { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+    .pulse-tile .pt-v { font-family: var(--mono); font-size: 15px; font-weight: 800; color: var(--text); margin-top: 3px; }
+    .pulse-tile .pt-s { font-size: 10.5px; color: var(--dim); margin-top: 2px; font-family: var(--mono); }
+
+    /* Custom Price Alerts Chips */
+    .alert-chip {
+      background: var(--surface); border: 1px solid rgba(194,205,148,0.28); border-radius: 10px;
+      padding: 6px 10px; font-size: 11.5px; font-family: var(--mono); display: inline-flex; align-items: center; gap: 8px;
+    }
+    .alert-chip.triggered {
+      background: rgba(134,239,172,0.16); border-color: var(--green); color: var(--green);
+      box-shadow: 0 0 12px rgba(134,239,172,0.2);
+    }
+
+    /* Non-Blocking Floating Toast */
+    .cbr-toast {
+      position: fixed; bottom: 84px; right: 18px; z-index: 9999;
+      background: #182418; color: #F3F6EC; border: 1.5px solid var(--olive);
+      border-radius: 12px; padding: 10px 16px; font-size: 12.5px; font-weight: 700;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.6); opacity: 0; transform: translateY(12px);
+      pointer-events: none; transition: all 0.2s ease;
+    }
+    .cbr-toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -352,6 +386,35 @@
 
   <!-- ======================= LIVE ENTRY CALLOUTS / SNIPER RADAR ======================= -->
   <section class="view on" id="v-signals">
+    <!-- ⚡ 5-Tile Live Market Heartbeat Bar -->
+    <div class="pulse-strip" id="marketPulseStrip">
+      <div class="pulse-tile" onclick="openOrderSlip('BTC')">
+        <div class="pt-k"><span>BTC Anchor</span><span class="pill live" style="font-size:9px;padding:1px 5px">LIVE</span></div>
+        <div class="pt-v" id="ptBtcPx">—</div>
+        <div class="pt-s" id="ptBtcSub">Market Trend</div>
+      </div>
+      <div class="pulse-tile" onclick="openOrderSlip('SOL')">
+        <div class="pt-k"><span>SOL Sniper</span><span style="color:var(--olive)">$105–$108.5</span></div>
+        <div class="pt-v" id="ptSolPx">—</div>
+        <div class="pt-s" id="ptSolSub">Buy Shelf Distance</div>
+      </div>
+      <div class="pulse-tile" onclick="go('hype')">
+        <div class="pt-k"><span>HYPE Perp</span><span style="color:var(--olive)">$76–$79.5</span></div>
+        <div class="pt-v" id="ptHypePx">—</div>
+        <div class="pt-s" id="ptHypeSub">Hyperliquid L1</div>
+      </div>
+      <div class="pulse-tile" onclick="go('news')">
+        <div class="pt-k"><span>Fear &amp; Greed</span><span id="ptFngTag">Sentiment</span></div>
+        <div class="pt-v" id="ptFngVal">—</div>
+        <div class="pt-s" id="ptFngSub">Psychology Index</div>
+      </div>
+      <div class="pulse-tile" onclick="document.getElementById('signalSearch').focus()">
+        <div class="pt-k"><span>84-Coin Radar</span><span style="color:var(--green)">ROBINHOOD</span></div>
+        <div class="pt-v" id="ptDipCount">—</div>
+        <div class="pt-s" id="ptDipSub">Active Dip Setups</div>
+      </div>
+    </div>
+
     <!-- Master Pre-Trade Cockpit: Go / No-Go Clearance Radar -->
     <div class="cockpit-box green-clear" id="cockpitBox">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -388,7 +451,7 @@
         </div>
         <div class="rule-sentry-item">
           <b>📊 3. 3-Tranche Scaling</b>
-          35% initial / 40% dip / 25% wick ($5,058 staged cash allocation).
+          35% initial / 40% dip / 25% wick (<span id="ruleBankrollLabel">$5,058</span> staged cash).
         </div>
         <div class="rule-sentry-item">
           <b>🛑 4. Hard Stop In Broker</b>
@@ -397,24 +460,30 @@
       </div>
     </div>
 
-    <!-- Capital Posture & Dry Powder Banner -->
+    <!-- Capital Posture & Editable Dry Powder Banner -->
     <div class="card" style="border-color:rgba(194,205,148,.4);background:linear-gradient(180deg,rgba(194,205,148,0.1) 0%,rgba(10,15,10,0.7) 100%);margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span class="pill live" style="background:rgba(134,239,172,0.18);color:var(--green)">100% FLAT CASH RESERVE</span>
-          <b style="font-size:16px;margin-left:8px;color:var(--text)">$5,058.00 Dry Powder Ready</b>
+          <b style="font-size:16px;color:var(--text)" id="bankrollHeadline">$5,058.00 Dry Powder Ready</b>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <button class="btn" id="btnSoundToggle" onclick="toggleAudioAlert()" style="font-size:11px;padding:5px 10px">
             <span id="soundIcon">🔇</span> Audio Alert: <span id="soundStatus">OFF</span>
           </button>
           <span class="pill live" id="signalsLiveBadge">RADAR ACTIVE</span>
         </div>
       </div>
-      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)">
-        <div><span class="dim">Strategy:</span> <b>Limit Sniper on Dips</b> (No chasing green candles)</div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="dim">Dry Powder ($):</span>
+          <input id="bankrollInput" type="number" step="50" value="5058" oninput="updateBankroll(this.value)" style="width:96px;padding:4px 8px;font-size:12.5px;border-radius:8px">
+          <button class="btn" style="padding:3px 7px;font-size:10.5px" onclick="updateBankroll(2500)">$2.5K</button>
+          <button class="btn" style="padding:3px 7px;font-size:10.5px" onclick="updateBankroll(5058)">$5,058</button>
+          <button class="btn" style="padding:3px 7px;font-size:10.5px" onclick="updateBankroll(10000)">$10K</button>
+        </div>
         <div><span class="dim">Closest Setup:</span> <b style="color:var(--olive)" id="closestSetupSummary">Scanning…</b></div>
-        <div><span class="dim">Staged Tranches:</span> <b>35% / 40% / 25%</b> scaling ladder</div>
+        <div><span class="dim">Staged Tranches:</span> <b id="trancheSplitSummary">$1,770 / $2,023 / $1,265</b> (35/40/25%)</div>
       </div>
     </div>
 
@@ -446,14 +515,34 @@
           </div>
         </div>
         <div class="beginner-box">
-          <div class="beginner-title">🛡️ $5,058 Bankroll Shield</div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.5">
+          <div class="beginner-title">🛡️ <span id="begBankrollTitle">$5,058</span> Bankroll Shield</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5" id="begBankrollBullets">
             • <b>35% ($1,770)</b> Tranche 1 Limit<br>
             • <b>40% ($2,023)</b> Tranche 2 Deep Dip<br>
             • <b>25% ($1,265)</b> Surprise Wick Cash
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 🔔 Custom Price Alerts Watchlist Bar -->
+    <div class="card" id="priceAlertsCard" style="padding:12px 14px;margin-bottom:14px;border-color:rgba(194,205,148,0.28)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:800;color:var(--text)">🔔 Live Price Alerts Watchlist</span>
+          <span class="pill live" style="font-size:9.5px">Checks Every 3s</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input id="newAlertSym" type="text" placeholder="Coin (e.g. SOL)" style="width:92px;padding:4px 8px;font-size:11.5px;text-transform:uppercase">
+          <select id="newAlertDir" style="width:88px;padding:4px 6px;font-size:11.5px">
+            <option value="below">Drops &le;</option>
+            <option value="above">Breaks &ge;</option>
+          </select>
+          <input id="newAlertPx" type="number" step="any" placeholder="Target $" style="width:95px;padding:4px 8px;font-size:11.5px">
+          <button class="btn primary" style="padding:5px 10px;font-size:11px" onclick="addCustomPriceAlert()">+ Set Alert</button>
+        </div>
+      </div>
+      <div id="priceAlertsList" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     </div>
 
     <!-- 🏆 Top 3 Recommended Dips on Robinhood Right Now -->
@@ -502,28 +591,30 @@
 
     <!-- Interactive Staged Capital Allocator Card -->
     <div class="card" id="capitalAllocatorCard" style="border-color:rgba(194,205,148,0.3);margin-top:14px">
-      <h2><span>💰 $5,058 Dry Powder Tranche Calculator</span><small>Risk, size &amp; staged entries</small></h2>
+      <h2><span>💰 Dry Powder Tranche &amp; Risk Sizer (All 84 Coins)</span><small>Risk, size &amp; staged entries</small></h2>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
-        Click <b>"Size Entry"</b> on any callout above to prefill, or select a coin below to calculate position sizing for your $5,058 cash reserve.
+        Click <b>"💰 Sizer"</b> on any callout above to prefill, or pick any of the 84 Robinhood coins below to calculate exact position sizing.
       </div>
       <div class="grid g4" style="margin-bottom:10px">
-        <label class="f">Coin
+        <label class="f">Coin (84 Tradable)
           <select id="calcCoin" onchange="applyCalcPreset(this.value)">
             <option value="SOL">SOL (Solana)</option>
             <option value="HYPE">HYPE (Hyperliquid)</option>
             <option value="BTC">BTC (Bitcoin)</option>
             <option value="ETH">ETH (Ethereum)</option>
+            <option value="DOGE">DOGE (Dogecoin)</option>
             <option value="PEPE">PEPE (Pepe)</option>
             <option value="SUI">SUI (Sui)</option>
             <option value="NEAR">NEAR (Near)</option>
             <option value="AAVE">AAVE (Aave)</option>
+            <option value="TRUMP">TRUMP (Official Trump)</option>
           </select>
         </label>
         <label class="f">Total Allocation ($)
-          <input id="calcCapital" type="number" step="50" value="1500" oninput="runEntryCalc()">
+          <input id="calcCapital" type="number" step="50" value="1770" oninput="runEntryCalc()">
         </label>
         <label class="f">Planned Entry ($)
-          <input id="calcEntry" type="number" step="any" value="108.00" oninput="runEntryCalc()">
+          <input id="calcEntry" type="number" step="any" value="108.50" oninput="runEntryCalc()">
         </label>
         <label class="f">Hard Stop Loss ($)
           <input id="calcStop" type="number" step="any" value="103.50" oninput="runEntryCalc()">
@@ -539,10 +630,10 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <span class="dim" style="font-size:11px;align-self:center">Quick Sizing:</span>
-        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=1000;runEntryCalc()">$1,000 (20%)</button>
-        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=1517;runEntryCalc()">$1,517 (30%)</button>
-        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=2023;runEntryCalc()">$2,023 (40%)</button>
-        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=5058;runEntryCalc()">$5,058 (100% MAX)</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=Math.round(bankrollUsd*0.20);runEntryCalc()">20% Reserve</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=Math.round(bankrollUsd*0.35);runEntryCalc()">35% (Tranche 1)</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=Math.round(bankrollUsd*0.50);runEntryCalc()">50% Half</button>
+        <button class="btn" style="padding:4px 8px;font-size:11px" onclick="$('calcCapital').value=Math.round(bankrollUsd);runEntryCalc()">100% Full Reserve</button>
       </div>
       <div class="result" id="calcResults"></div>
     </div>
@@ -643,17 +734,17 @@
         </div>
 
         <div class="card" style="border-color: rgba(194, 205, 148, 0.28);">
-          <h2><span>💰 Capital &amp; Order Allocator</span><small>Robinhood Position + Working Orders</small></h2>
+          <h2><span>💰 HYPE 3-Tranche Re-Entry Planner</span><small>$5,058 Dry Powder Reserve</small></h2>
           <div style="font-size:12px;margin-bottom:10px;line-height:1.5" class="muted">
-            • <b>Current Fill:</b> 23.1532 HYPE @ $85.45 avg ($1,997.21 filled)<br>
-            • <b>Working Stop Buy:</b> 17.0009 HYPE @ $87.40 (~$1,500.00 working)<br>
-            • <b>Total Deployed:</b> ~$3,497.21 (~40.15 total HYPE if triggered)
+            • <b>Current Crypto Exposure:</b> 0.00 HYPE (100% Flat in Cash)<br>
+            • <b>Primary Buy Shelf:</b> $76.00 – $79.50 (Macro Demand Base)<br>
+            • <b>Hard Invalidation Stop:</b> $72.50 (Strict Risk Cap)
           </div>
           <div class="grid g2">
-            <label class="f">Remaining Reserve ($)<input id="dcaTotal" type="number" step="1" value="1500"></label>
-            <label class="f">Working Stop Buy ($)<input id="dcaT1" type="number" step="0.01" value="87.40"></label>
-            <label class="f">Dip Limit Bid ($)<input id="dcaT2" type="number" step="0.01" value="82.50"></label>
-            <label class="f">Deep Liquidity Bid ($)<input id="dcaT3" type="number" step="0.01" value="79.00"></label>
+            <label class="f">Dry Powder Reserve ($)<input id="dcaTotal" type="number" step="50" value="5058"></label>
+            <label class="f">Tranche 1 Limit ($)<input id="dcaT1" type="number" step="0.01" value="79.50"></label>
+            <label class="f">Tranche 2 Mid Shelf ($)<input id="dcaT2" type="number" step="0.01" value="77.75"></label>
+            <label class="f">Tranche 3 Deep Wick ($)<input id="dcaT3" type="number" step="0.01" value="76.00"></label>
           </div>
           <div class="result" id="dcaOut" style="margin-top:10px"></div>
         </div>
@@ -687,32 +778,31 @@
       <div class="scroll-x" style="margin-top:12px"><table id="portTable"></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
         <button class="btn primary" onclick="editPosition()">+ Add position</button>
-        <button class="btn" onclick="resetToVerifiedPositions()">Reset to verified fills</button>
+        <button class="btn" onclick="resetToVerifiedPositions()">Sync Flat Crypto + Equity Fills</button>
         <button class="btn" onclick="exportPositions()">Export backup</button>
         <button class="btn" onclick="importPositions()">Import backup</button>
       </div>
       <p class="dim" style="font-size:11px;margin:10px 2px 0">Positions are stored securely in your browser's private storage. Server fetches live prices for P&amp;L calculations in real time.</p>
     </div>
 
-    <!-- Active Working Orders Card -->
+    <!-- Crypto Dry Powder & Staged Reserve Card -->
     <div class="card" style="border-color:rgba(194,205,148,.25)">
-      <h2><span>⚡ Working Orders (Robinhood)</span><small>open pending orders</small></h2>
+      <h2><span>💵 Crypto Cash Reserve (Robinhood)</span><small>100% flat &amp; protected</small></h2>
       <div style="background:rgba(194,205,148,0.05);border:1px solid rgba(194,205,148,0.2);border-radius:10px;padding:14px;margin-top:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
           <div>
-            <span class="pill live">WORKING ORDER · GOOD FOR WEEK</span>
-            <b style="font-size:14px;margin-left:8px">HYPE — Stop Buy</b>
+            <span class="pill live">100% CASH SIDELINED</span>
+            <b style="font-size:14px;margin-left:8px">$5,058.00 Dry Powder Ready for Dips</b>
           </div>
-          <span class="mono" style="font-size:13px;color:var(--olive)">Triggers @ <b>$87.40</b> (Limit $88.274)</span>
+          <span class="mono" style="font-size:13px;color:var(--olive)">0 Open Crypto Risk</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px;font-size:12.5px">
-          <div><span class="dim">Size:</span> <b>17.0009 HYPE</b></div>
-          <div><span class="dim">Order Total:</span> <b>~$1,500.00</b> (incl. 0.95% fee)</div>
-          <div><span class="dim">Placed:</span> <b>Today 11:27 AM CT</b></div>
-          <div><span class="dim">If Triggered:</span> <b>~40.15 total HYPE (~$3,497 total cost)</b></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px;font-size:12.5px">
+          <div><span class="dim">Tranche 1 (35%):</span> <b>$1,770.30</b> (Initial Shelf)</div>
+          <div><span class="dim">Tranche 2 (40%):</span> <b>$2,023.20</b> (Deep Dip)</div>
+          <div><span class="dim">Tranche 3 (25%):</span> <b>$1,264.50</b> (Wick Catch)</div>
         </div>
         <div class="dim" style="font-size:11.5px;margin-top:10px;line-height:1.4">
-          ⚠️ <b>How this Stop Buy works:</b> This order is resting <i>above</i> current market price. If HYPE rallies to <b>$87.40</b>, it triggers an order to buy 17 more HYPE tokens up to $88.274. If you do not want to add on a breakout rally, cancel it in the Robinhood app under <b>HYPE → Orders</b>.
+          ✅ All prior SOL and HYPE positions exited cleanly into cash. Use the <b>🎯 Cockpit</b> tab to copy 1-click Robinhood limit order tickets when a top setup enters its buy zone.
         </div>
       </div>
     </div>
@@ -772,13 +862,16 @@
   <div class="foot">Data: Hyperliquid, CoinGecko, Coinbase, Yahoo Finance, Alternative.me, Forex Factory, news RSS. Prices can lag. Nothing here is financial advice.</div>
 </div>
 
-<nav class="tabs"><div class="in" style="grid-template-columns: repeat(6, 1fr); max-width: 640px;">
+<div class="cbr-toast" id="cbrToast"></div>
+
+<nav class="tabs"><div class="in" style="grid-template-columns: repeat(7, 1fr); max-width: 720px;">
   <button data-v="signals" class="on" onclick="go('signals')"><span class="ic">🎯</span>Cockpit</button>
   <button data-v="intel" onclick="go('intel')"><span class="ic">🦅</span>Tweets</button>
   <button data-v="hype" onclick="go('hype')"><span class="ic">⚡</span>HYPE</button>
-  <button data-v="port" onclick="go('port')"><span class="ic">💼</span>Portfolio</button>
-  <button data-v="mkts" onclick="go('mkts')"><span class="ic">📊</span>Markets (84)</button>
+  <button data-v="mkts" onclick="go('mkts')"><span class="ic">📊</span>Markets</button>
   <button data-v="chart" onclick="go('chart')"><span class="ic">📈</span>Chart</button>
+  <button data-v="news" onclick="go('news')"><span class="ic">📰</span>News</button>
+  <button data-v="port" onclick="go('port')"><span class="ic">💼</span>Portfolio</button>
 </div></nav>
 
 <dialog id="posDlg">
@@ -835,18 +928,29 @@ const cls = n => n == null ? 'muted' : n > 0 ? 'up' : n < 0 ? 'down' : 'muted';
 const timeAgo = iso => { const s = (Date.now() - new Date(iso)) / 1000; return s < 60 ? 'just now' : s < 3600 ? Math.round(s/60) + 'm ago' : Math.round(s/3600) + 'h ago'; };
 async function getJSON(url) { const r = await fetch(url, { cache: 'no-store' }); const j = await r.json(); if (!r.ok || j.status === 'error') throw new Error(j.error || r.status); return j; }
 
+let toastTimer = null;
+function showToast(msg) {
+  const el = $('cbrToast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
 const VERIFIED_INITIAL_POSITIONS = [
-  { symbol: 'HYPE', where: 'Robinhood Crypto', qty: 23.1532, avg: 85.4487, stop: 83.50, target: 95.00 },
-  { symbol: 'SOL', where: 'Robinhood Crypto', qty: 15.58619, avg: 114.40, stop: 108.50, target: 125.00 },
   { symbol: 'META', where: 'Robinhood Equities', qty: 0.25997, avg: 769.31, stop: null, target: 850.00 }
 ];
 
 let positions = store.get('cbr_positions');
-if (!positions || !Array.isArray(positions) || positions.length === 0 || !store.get('cbr_seeded_rh_20260929_v1')) {
+if (!positions || !Array.isArray(positions) || !store.get('cbr_seeded_flat_20261010_v1')) {
   positions = VERIFIED_INITIAL_POSITIONS;
   store.set('cbr_positions', positions);
-  store.set('cbr_seeded_rh_20260929_v1', true);
+  store.set('cbr_seeded_flat_20261010_v1', true);
 }
+
+let dash = null, hl = null, quotes = {}, sector = 'All', sortKey = 'market_cap', sortDir = -1, view = store.get('cbr_view', 'signals');
+let bankrollUsd = store.get('cbr_bankroll_usd', 5058);
 const errs = { dash: null, hl: null };
 
 function showErrors() {
@@ -1057,8 +1161,198 @@ function setIntelFilter(filter, btn) {
 
 function copyTweetText(title) {
   navigator.clipboard.writeText(title).then(() => {
-    alert("Copied post headline to clipboard!");
+    showToast("📋 Copied post headline to clipboard!");
   }).catch(() => {});
+}
+
+// ------------------------------------------------------------------ Bankroll & Pulse Strip & Custom Price Alerts
+function updateBankroll(val) {
+  const num = Number(val);
+  if (!num || num < 50) return;
+  bankrollUsd = Math.round(num * 100) / 100;
+  store.set('cbr_bankroll_usd', bankrollUsd);
+  if ($('bankrollInput') && document.activeElement !== $('bankrollInput')) {
+    $('bankrollInput').value = bankrollUsd;
+  }
+  const t1 = Math.round(bankrollUsd * 0.35);
+  const t2 = Math.round(bankrollUsd * 0.40);
+  const t3 = Math.round(bankrollUsd * 0.25);
+  if ($('bankrollHeadline')) $('bankrollHeadline').textContent = `${usd(bankrollUsd)} Dry Powder Ready`;
+  if ($('ruleBankrollLabel')) $('ruleBankrollLabel').textContent = `$${Math.round(bankrollUsd).toLocaleString()}`;
+  if ($('trancheSplitSummary')) $('trancheSplitSummary').textContent = `$${t1.toLocaleString()} / $${t2.toLocaleString()} / $${t3.toLocaleString()}`;
+  if ($('begBankrollTitle')) $('begBankrollTitle').textContent = `$${Math.round(bankrollUsd).toLocaleString()}`;
+  if ($('begBankrollBullets')) {
+    $('begBankrollBullets').innerHTML = `
+      • <b>35% ($${t1.toLocaleString()})</b> Tranche 1 Limit<br>
+      • <b>40% ($${t2.toLocaleString()})</b> Tranche 2 Deep Dip<br>
+      • <b>25% ($${t3.toLocaleString()})</b> Surprise Wick Cash
+    `;
+  }
+  renderSignals();
+  runEntryCalc();
+}
+
+const DEFAULT_PRICE_ALERTS = [
+  { id: 'sol-shelf', sym: 'SOL', cond: 'below', price: 108.50, triggered: false },
+  { id: 'hype-shelf', sym: 'HYPE', cond: 'below', price: 79.50, triggered: false },
+  { id: 'btc-shelf', sym: 'BTC', cond: 'below', price: 60500, triggered: false }
+];
+let priceAlerts = store.get('cbr_price_alerts_v1', null);
+if (!priceAlerts || !Array.isArray(priceAlerts)) {
+  priceAlerts = DEFAULT_PRICE_ALERTS;
+  store.set('cbr_price_alerts_v1', priceAlerts);
+}
+
+function getLiveCoinPrice(sym) {
+  if (sym === 'HYPE' && hl?.mark_price) return hl.mark_price;
+  const c = callouts.find(x => x.symbol === sym);
+  if (c && c.price != null) return c.price;
+  const m = dash?.markets?.find(x => x.symbol === sym);
+  if (m && m.price != null) return m.price;
+  return null;
+}
+
+function addCustomPriceAlert(symArg, condArg, priceArg) {
+  const sym = (symArg || $('newAlertSym')?.value || 'SOL').trim().toUpperCase();
+  const cond = condArg || $('newAlertDir')?.value || 'below';
+  const rawPx = priceArg != null ? priceArg : parseFloat($('newAlertPx')?.value);
+  if (!sym || !rawPx || isNaN(rawPx) || rawPx <= 0) {
+    showToast("⚠️ Enter a coin symbol and valid target price first");
+    return;
+  }
+  const id = `${sym.toLowerCase()}-${cond}-${rawPx}-${Date.now()}`;
+  priceAlerts.unshift({ id, sym, cond, price: rawPx, triggered: false });
+  store.set('cbr_price_alerts_v1', priceAlerts);
+  if (!priceArg && $('newAlertPx')) $('newAlertPx').value = '';
+  if (!symArg && $('newAlertSym')) $('newAlertSym').value = '';
+  renderPriceAlerts();
+  showToast(`🔔 Alert armed: ${sym} ${cond === 'below' ? '≤' : '≥'} ${px(rawPx)}`);
+}
+
+function removePriceAlert(id) {
+  priceAlerts = priceAlerts.filter(a => a.id !== id);
+  store.set('cbr_price_alerts_v1', priceAlerts);
+  renderPriceAlerts();
+  showToast("🗑️ Alert removed");
+}
+
+function checkCustomPriceAlerts() {
+  if (!priceAlerts.length) return;
+  let changed = false;
+  priceAlerts.forEach(a => {
+    const cur = getLiveCoinPrice(a.sym);
+    if (cur == null) return;
+    const hit = a.cond === 'below' ? cur <= a.price : cur >= a.price;
+    if (hit && !a.triggered) {
+      a.triggered = true;
+      changed = true;
+      const msg = `${a.sym} hit ${px(cur)} (Target ${a.cond === 'below' ? '≤' : '≥'} ${px(a.price)})`;
+      sendDesktopAlert(`🔔 Price Alert Hit: ${a.sym}`, msg, `Price alert triggered for ${a.sym} at ${px(cur)}`);
+      showToast(`🔔 ALERT HIT: ${msg}`);
+    } else if (!hit && a.triggered) {
+      // Re-arm if price moves >0.5% away
+      const diffPct = Math.abs(cur - a.price) / a.price * 100;
+      if (diffPct > 0.5) {
+        a.triggered = false;
+        changed = true;
+      }
+    }
+  });
+  if (changed) store.set('cbr_price_alerts_v1', priceAlerts);
+  renderPriceAlerts();
+}
+
+function renderPriceAlerts() {
+  const el = $('priceAlertsList');
+  if (!el) return;
+  if (!priceAlerts.length) {
+    el.innerHTML = `<span class="dim" style="font-size:11.5px">No custom alerts armed. Enter a coin above or tap "🔔 Alert @ Shelf" on any setup.</span>`;
+    return;
+  }
+  el.innerHTML = priceAlerts.map(a => {
+    const cur = getLiveCoinPrice(a.sym);
+    const distPct = cur != null ? ((cur - a.price) / a.price * 100) : null;
+    const distStr = distPct != null ? `${distPct > 0 ? '+' : ''}${distPct.toFixed(1)}%` : '…';
+    const isHit = a.triggered;
+    return `
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border-radius:8px;background:${isHit ? 'rgba(134,239,172,0.14)' : 'var(--bg2)'};border:1px solid ${isHit ? 'rgba(134,239,172,0.5)' : 'var(--line)'};font-size:11.5px">
+        <span>${isHit ? '🟢' : '🔔'} <b>${esc(a.sym)}</b> ${a.cond === 'below' ? '≤' : '≥'} <b class="mono" style="color:var(--olive)">${px(a.price)}</b></span>
+        <span class="dim mono" style="font-size:10.5px">(Now: ${cur != null ? px(cur) : '—'} · ${distStr})</span>
+        <button class="btn ghost" style="padding:1px 5px;font-size:10px;line-height:1" onclick="removePriceAlert('${esc(a.id)}')" title="Remove alert">✕</button>
+      </div>
+    `;
+  }).join('');
+}
+
+let selectorsPopulated = false;
+function populateCoinSelectors() {
+  if (selectorsPopulated || !callouts.length) return;
+  selectorsPopulated = true;
+  const syms = callouts.map(c => ({ sym: c.symbol, name: c.name || c.symbol }));
+  const calcSel = $('calcCoin');
+  if (calcSel) {
+    const curVal = calcSel.value || 'SOL';
+    calcSel.innerHTML = syms.map(s => `<option value="${esc(s.sym)}"${s.sym === curVal ? ' selected' : ''}>${esc(s.sym)} — ${esc(s.name)}</option>`).join('');
+  }
+}
+
+function renderPulseStrip() {
+  // 1. BTC Anchor
+  const btc = callouts.find(c => c.symbol === 'BTC') || dash?.markets?.find(m => m.symbol === 'BTC');
+  if (btc) {
+    if ($('ptBtcPx')) $('ptBtcPx').innerHTML = `${px(btc.price)} <span class="${cls(btc.change_24h)}" style="font-size:11px">${pct(btc.change_24h, 1)}</span>`;
+    if ($('ptBtcSub')) {
+      $('ptBtcSub').textContent = btc.entry_high ? `Shelf: ${px(btc.entry_low)} – ${px(btc.entry_high)}` : 'Market Regime Anchor';
+    }
+  }
+
+  // 2. SOL Sniper
+  const sol = callouts.find(c => c.symbol === 'SOL') || dash?.markets?.find(m => m.symbol === 'SOL');
+  if (sol) {
+    if ($('ptSolPx')) $('ptSolPx').innerHTML = `${px(sol.price)} <span class="${cls(sol.change_24h)}" style="font-size:11px">${pct(sol.change_24h, 1)}</span>`;
+    if ($('ptSolSub')) {
+      const d = sol.distance_pct;
+      $('ptSolSub').innerHTML = sol.status === 'IN_ZONE'
+        ? `<b style="color:var(--green)">🟢 IN BUY SHELF NOW</b>`
+        : `${d != null ? (d > 0 ? '+' : '') + d + '% to $108.50 shelf' : 'Monitoring shelf'}`;
+    }
+  }
+
+  // 3. HYPE Perp
+  const hypePx = hl?.mark_price ?? callouts.find(c => c.symbol === 'HYPE')?.price;
+  const hypeChg = hl?.change_24h_pct ?? callouts.find(c => c.symbol === 'HYPE')?.change_24h;
+  if (hypePx != null) {
+    if ($('ptHypePx')) $('ptHypePx').innerHTML = `${px(hypePx)} <span class="${cls(hypeChg)}" style="font-size:11px">${pct(hypeChg, 1)}</span>`;
+    if ($('ptHypeSub')) {
+      $('ptHypeSub').textContent = hl?.open_interest_usd
+        ? `OI ${compact(hl.open_interest_usd)} · Fund ${hl.funding_hourly_pct >= 0 ? '+' : ''}${hl.funding_hourly_pct.toFixed(3)}%/h`
+        : `Sweep Shelf: $78.00 – $79.50`;
+    }
+  }
+
+  // 4. Fear & Greed
+  const fng = dash?.fear_greed;
+  if (fng && fng.value != null) {
+    if ($('ptFngVal')) $('ptFngVal').textContent = `${fng.value} / 100`;
+    if ($('ptFngTag')) $('ptFngTag').textContent = fng.classification || 'Sentiment';
+    if ($('ptFngSub')) {
+      $('ptFngSub').textContent = fng.prev_value != null ? `Yesterday: ${fng.prev_value} · Crowd Mood` : 'Contrarian dip gauge';
+    }
+  }
+
+  // 5. 84-Coin Dip Radar + Closest Setup Summary
+  if (callouts.length) {
+    const nZone = callouts.filter(c => c.status === 'IN_ZONE').length;
+    const nNear = callouts.filter(c => c.status === 'NEAR_ZONE' || (c.distance_pct != null && Math.abs(c.distance_pct) <= 2.5)).length;
+    if ($('ptDipCount')) $('ptDipCount').textContent = `${nZone} In Zone · ${nNear} Near`;
+    if ($('ptDipSub')) $('ptDipSub').textContent = `${callouts.length} Robinhood coins monitored`;
+    const closest = [...callouts].sort((a, b) => Math.abs(a.distance_pct ?? 999) - Math.abs(b.distance_pct ?? 999))[0];
+    if (closest && $('closestSetupSummary')) {
+      $('closestSetupSummary').textContent = closest.status === 'IN_ZONE'
+        ? `${closest.symbol} (🟢 IN BUY ZONE NOW)`
+        : `${closest.symbol} (${closest.distance_pct > 0 ? '+' : ''}${closest.distance_pct}% from ${px(closest.entry_high)})`;
+    }
+  }
 }
 
 function renderIntel() {
@@ -1166,8 +1460,11 @@ async function loadSignals() {
   try {
     const res = await getJSON('/api/signals');
     callouts = res.callouts || [];
+    populateCoinSelectors();
     renderSignals();
+    renderPulseStrip();
     checkAudioAlert();
+    checkCustomPriceAlerts();
     $('signalsUpdated').textContent = 'Live · ' + new Date(res.fetched_at || Date.now()).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   } catch (e) {
     console.error('Signals error:', e);
@@ -1183,9 +1480,9 @@ function setSignalFilter(filter, btn) {
 
 function copySnippet(text) {
   navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied "${text}" to clipboard!`);
+    showToast(`📋 Copied "${text}" to clipboard!`);
   }).catch(() => {
-    alert(text);
+    showToast(`Copied: ${text}`);
   });
 }
 
@@ -1203,12 +1500,15 @@ function renderSignals() {
   if ($('cntZone')) $('cntZone').textContent = nZone;
   if ($('cntNear')) $('cntNear').textContent = nNear;
 
+  const t1Usd = Math.round(bankrollUsd * 0.35 * 100) / 100;
+  const bankrollScale = bankrollUsd / 5058;
+
   // Sort by Dip Score descending for beginner picks
   const sortedByScore = [...callouts].sort((a, b) => (b.dip_score || 0) - (a.dip_score || 0));
 
   // 1. Update 🔰 Beginner Fast-Track HUD
   if ($('begPermissionBadge')) {
-    const verdict = dash?.cockpit?.verdict_status || 'GREEN';
+    const verdict = cockpitData?.verdict_status || dash?.cockpit?.verdict_status || 'GREEN';
     if (verdict === 'GREEN') {
       $('begPermissionBadge').innerHTML = '🟢 SAFE TO BUY DIPS · RESTING LIMITS';
       $('begPermissionBadge').style.color = 'var(--green)';
@@ -1220,7 +1520,7 @@ function renderSignals() {
     } else {
       $('begPermissionBadge').innerHTML = '🔴 STAND DOWN · PROTECT CASH';
       $('begPermissionBadge').style.color = 'var(--red)';
-      $('begPermissionDesc').textContent = 'Economic hazard or heavy volatility. Keep 100% of $5,058 protected in cash.';
+      $('begPermissionDesc').textContent = `Economic hazard or heavy volatility. Keep 100% of ${usd(bankrollUsd)} protected in cash.`;
     }
   }
 
@@ -1231,7 +1531,7 @@ function renderSignals() {
     const distText = top1.status === 'IN_ZONE' ? '🟢 In Buy Zone Now' : (top1.distance_pct != null && top1.distance_pct > 0 ? `+${top1.distance_pct}% to shelf` : `${top1.distance_pct || 0}% below`);
     $('begTopDist').textContent = distText;
     $('begTopDist').style.color = top1.status === 'IN_ZONE' ? 'var(--green)' : 'var(--olive)';
-    $('begTopAdvice').textContent = `Set limit buy at ${px(top1.entry_high)} ($1,770 Tranche 1). Stop at ${px(top1.stop_loss)}.`;
+    $('begTopAdvice').textContent = `Set limit buy at ${px(top1.entry_high)} (${usd(t1Usd)} Tranche 1). Stop at ${px(top1.stop_loss)}.`;
     if ($('begTopBtn')) $('begTopBtn').setAttribute('onclick', `openOrderSlip('${top1.symbol}')`);
   }
 
@@ -1242,6 +1542,7 @@ function renderSignals() {
     $('topDipsGrid').innerHTML = top3.map((c, i) => {
       const isZone = c.status === 'IN_ZONE';
       const distLabel = isZone ? '🟢 In Zone Now' : (c.distance_pct != null && c.distance_pct > 0 ? `+${c.distance_pct}% away` : `${c.distance_pct || 0}%`);
+      const scaledLoss = Math.round((c.tranche_plan?.downside_loss || 140) * bankrollScale);
       return `
         <div class="top-dip-card">
           <span class="top-dip-rank">${medals[i]}</span>
@@ -1259,11 +1560,16 @@ function renderSignals() {
           </div>
           <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;line-height:1.5">
             <div><span class="dim">Buy Shelf:</span> <b style="color:var(--olive)">${px(c.entry_low)} – ${px(c.entry_high)}</b></div>
-            <div><span class="dim">Stop Loss:</span> <b style="color:var(--red)">${px(c.stop_loss)}</b> <span class="dim">(-$${c.tranche_plan?.downside_loss || 140})</span></div>
+            <div><span class="dim">Stop Loss:</span> <b style="color:var(--red)">${px(c.stop_loss)}</b> <span class="dim">(-$${scaledLoss})</span></div>
           </div>
-          <button class="btn primary" style="width:100%;padding:7px;font-size:11.5px;font-weight:800" onclick="openOrderSlip('${esc(c.symbol)}')">
-            📋 Robinhood Order Ticket
-          </button>
+          <div style="display:flex;gap:6px">
+            <button class="btn primary" style="flex:1;padding:7px;font-size:11.5px;font-weight:800" onclick="openOrderSlip('${esc(c.symbol)}')">
+              📋 Order Ticket
+            </button>
+            <button class="btn" style="padding:7px 9px;font-size:11.5px" onclick="addCustomPriceAlert('${esc(c.symbol)}','below',${c.entry_high || c.price})" title="Arm price alert at buy shelf">
+              🔔
+            </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -1384,7 +1690,8 @@ function renderSignals() {
         <!-- Actions -->
         <div class="signal-actions">
           <button class="btn primary" onclick="openOrderSlip('${esc(c.symbol)}')">📋 Robinhood Order Slip</button>
-          <button class="btn" onclick="go('chart');loadChart('${esc(c.symbol in CHARTS ? c.symbol : 'HYPE')}');">📈 Chart</button>
+          <button class="btn" onclick="addCustomPriceAlert('${esc(c.symbol)}','below',${c.entry_high || c.price})">🔔 Alert @ ${px(c.entry_high)}</button>
+          <button class="btn" onclick="go('chart');loadChart('${esc(c.symbol)}');">📈 Chart</button>
           <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high}, ${c.stop_loss}, ${c.target_1}, ${c.target_2})">💰 Sizer</button>
         </div>
       </div>
@@ -1395,27 +1702,30 @@ function renderSignals() {
 function openOrderSlip(sym) {
   const c = callouts.find(x => x.symbol === sym) || dash?.markets?.find(m => m.symbol === sym);
   if (!c) return;
-  const tp = c.tranche_plan || {
-    tranche_1: { pct: 35, usd: 1770.30, price: c.entry_high || c.price, tokens: (1770.30 / (c.entry_high || c.price)).toFixed(c.price < 1 ? 4 : 2) },
-    tranche_2: { pct: 40, usd: 2023.20, price: c.entry_low || (c.price * 0.98), tokens: (2023.20 / (c.entry_low || (c.price * 0.98))).toFixed(c.price < 1 ? 4 : 2) },
-    tranche_3: { pct: 25, usd: 1264.50, price: (c.entry_low ? c.entry_low * 0.98 : c.price * 0.96), tokens: (1264.50 / (c.entry_low ? c.entry_low * 0.98 : c.price * 0.96)).toFixed(c.price < 1 ? 4 : 2) },
-    blended_avg: c.entry_high || c.price,
-    stop_loss: c.stop_loss || (c.price * 0.94),
-    downside_loss: 140.00,
-    risk_pct: 2.8,
-    target_1: c.target_1 || (c.price * 1.15),
-    target_2: c.target_2 || (c.price * 1.30),
-    total_tokens: 0
-  };
+  const scale = bankrollUsd / 5058;
+  const rawTp = c.tranche_plan || {};
+  const p1 = rawTp.tranche_1?.price || c.entry_high || c.price;
+  const p2 = rawTp.tranche_2?.price || c.entry_low || (c.price * 0.98);
+  const p3 = rawTp.tranche_3?.price || (c.entry_low ? c.entry_low * 0.98 : c.price * 0.96);
+  const u1 = Math.round(bankrollUsd * 0.35 * 100) / 100;
+  const u2 = Math.round(bankrollUsd * 0.40 * 100) / 100;
+  const u3 = Math.round(bankrollUsd * 0.25 * 100) / 100;
+  const dec = c.price < 1 ? 4 : 2;
+  const tok1 = (u1 / p1).toFixed(dec);
+  const tok2 = (u2 / p2).toFixed(dec);
+  const tok3 = (u3 / p3).toFixed(dec);
+  const totTok = (Number(tok1) + Number(tok2) + Number(tok3)).toFixed(dec);
+  const blended = bankrollUsd / (Number(tok1) + Number(tok2) + Number(tok3) || 1);
+  const stopPx = c.stop_loss || rawTp.stop_loss || (c.price * 0.94);
+  const downsideUsd = Math.round(((rawTp.downside_loss || 140) * scale) * 100) / 100;
+  const riskPct = rawTp.risk_pct || 2.8;
 
-  const t1 = tp.tranche_1, t2 = tp.tranche_2, t3 = tp.tranche_3;
   $('slipCoin').textContent = `${c.symbol} · ${c.name || c.symbol}`;
   $('slipBody').innerHTML = `
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
-      Staged 3-tranche order execution plan for Charles's <b>$5,058.00</b> dry powder reserve.
+      Staged 3-tranche order execution plan for Charles's <b>${usd(bankrollUsd)}</b> dry powder reserve.
     </div>
 
-    <!-- Phone App Step-by-Step Instructions -->
     <div style="font-size:11px;font-weight:800;color:var(--olive);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">
       📱 Follow These Steps in the Robinhood Phone App:
     </div>
@@ -1429,14 +1739,14 @@ function openOrderSlip(sym) {
     </div>
 
     <div class="rh-step-box">
-      <b>3️⃣ Set Limit Price:</b> Enter <b>${px(t1.price)}</b>
-      <span class="copy-chip" onclick="copySnippet('${t1.price}')">📋 Copy Price</span>
+      <b>3️⃣ Set Limit Price:</b> Enter <b>${px(p1)}</b>
+      <span class="copy-chip" onclick="copySnippet('${p1}')">📋 Copy Price</span>
     </div>
 
     <div class="rh-step-box">
-      <b>4️⃣ Set Dollar Amount:</b> Enter <b>$1,770.30</b> (Tranche 1 · 35%)
-      <span class="copy-chip" onclick="copySnippet('1770.30')">📋 Copy Amount</span>
-      <div class="dim" style="font-size:10.5px;margin-top:2px">Yields approx <b>${t1.tokens} ${esc(c.symbol)}</b> tokens.</div>
+      <b>4️⃣ Set Dollar Amount:</b> Enter <b>${usd(u1)}</b> (Tranche 1 · 35%)
+      <span class="copy-chip" onclick="copySnippet('${u1.toFixed(2)}')">📋 Copy Amount</span>
+      <div class="dim" style="font-size:10.5px;margin-top:2px">Yields approx <b>${tok1} ${esc(c.symbol)}</b> tokens.</div>
     </div>
 
     <div class="rh-step-box">
@@ -1445,12 +1755,11 @@ function openOrderSlip(sym) {
 
     <div class="rh-step-box" style="border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06)">
       <b style="color:var(--red)">🛡️ 6️⃣ Set Stop Loss Immediately Once Filled:</b><br>
-      Tap <b>Trade</b> ➔ <b>Sell</b> ➔ <b>Stop Limit Order</b> ➔ Set Stop to <b>${px(c.stop_loss || tp.stop_loss)}</b>
-      <span class="copy-chip" onclick="copySnippet('${c.stop_loss || tp.stop_loss}')">📋 Copy Stop</span>
-      <div class="dim" style="font-size:10.5px;margin-top:2px">Caps max risk to -$${tp.downside_loss || 140} (${tp.risk_pct || 2.8}% of account).</div>
+      Tap <b>Trade</b> ➔ <b>Sell</b> ➔ <b>Stop Limit Order</b> ➔ Set Stop to <b>${px(stopPx)}</b>
+      <span class="copy-chip" onclick="copySnippet('${stopPx}')">📋 Copy Stop</span>
+      <div class="dim" style="font-size:10.5px;margin-top:2px">Caps max risk to -${usd(downsideUsd)} (${riskPct}% of bankroll).</div>
     </div>
 
-    <!-- Ticket Summary -->
     <div style="font-size:11px;font-weight:800;color:var(--muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em">
       Order Ticket Summary:
     </div>
@@ -1461,100 +1770,27 @@ function openOrderSlip(sym) {
         <span class="ticket-val">${px(c.price)} <span class="${cls(c.change_24h)}" style="font-size:11px">${pct(c.change_24h, 1)}</span></span>
       </div>
       <div class="ticket-row">
-        <span class="ticket-lbl">Tranche 2 (If it dips lower)</span>
-        <span class="ticket-val" style="color:var(--green)">$2,023.20 @ ${px(t2.price)}</span>
+        <span class="ticket-lbl">Tranche 2 (40% · Mid-shelf)</span>
+        <span class="ticket-val" style="color:var(--green)">${usd(u2)} @ ${px(p2)}</span>
       </div>
       <div class="ticket-row">
-        <span class="ticket-lbl">Tranche 3 (Surprise wick)</span>
-        <span class="ticket-val" style="color:var(--green)">$1,264.50 @ ${px(t3.price)}</span>
+        <span class="ticket-lbl">Tranche 3 (25% · Wick bid)</span>
+        <span class="ticket-val" style="color:var(--green)">${usd(u3)} @ ${px(p3)}</span>
       </div>
       <div class="ticket-row" style="background:rgba(194,205,148,0.06);border-radius:6px;padding:8px 6px">
         <span class="ticket-lbl" style="font-weight:700;color:var(--text)">Blended Avg Cost</span>
-        <span class="ticket-val" style="color:var(--olive)">${px(tp.blended_avg)} (${tp.total_tokens || (Number(t1.tokens)+Number(t2.tokens)+Number(t3.tokens)).toFixed(2)} tokens)</span>
+        <span class="ticket-val" style="color:var(--olive)">${px(blended)} (${totTok} tokens)</span>
       </div>
       <div class="ticket-row">
         <span class="ticket-lbl">Take Profit Targets (50% / 50%)</span>
-        <span class="ticket-val" style="color:var(--green)">${px(c.target_1 || tp.target_1)} / ${px(c.target_2 || tp.target_2)}</span>
+        <span class="ticket-val" style="color:var(--green)">${px(c.target_1 || rawTp.target_1 || c.price * 1.15)} / ${px(c.target_2 || rawTp.target_2 || c.price * 1.30)}</span>
       </div>
     </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
-      <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high || c.price}, ${c.stop_loss || c.price*0.95}, ${c.target_1 || c.price*1.15}, ${c.target_2 || c.price*1.25});$('orderSlipDlg').close()">💰 Custom Sizer</button>
+      <button class="btn" onclick="addCustomPriceAlert('${esc(c.symbol)}','below',${p1})">🔔 Alert @ ${px(p1)}</button>
+      <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high || c.price}, ${stopPx}, ${c.target_1 || c.price*1.15}, ${c.target_2 || c.price*1.25});$('orderSlipDlg').close()">💰 Custom Sizer</button>
       <button class="btn primary" onclick="copyRobinhoodSlip('${esc(c.symbol)}')">📋 Copy Full Ticket</button>
-    </div>
-  `;
-  $('orderSlipDlg').showModal();
-}
-
-    <div style="font-size:11px;font-weight:800;color:var(--olive);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em">
-      Staged Robinhood Order Steps:
-    </div>
-
-    <div class="order-ticket">
-      <div class="ticket-row">
-        <div>
-          <b style="color:var(--text)">1. Limit Buy · Tranche 1 (35%)</b>
-          <div class="dim" style="font-size:10.5px">Initial shelf contact bid</div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:var(--green);font-weight:700">${usd(t1.usd)} (${t1.tokens} ${esc(c.symbol)})</div>
-          <div class="dim" style="font-size:11px">@ <b>${px(t1.price)}</b></div>
-        </div>
-      </div>
-
-      <div class="ticket-row">
-        <div>
-          <b style="color:var(--text)">2. Limit Buy · Tranche 2 (40%)</b>
-          <div class="dim" style="font-size:10.5px">Mid-shelf discount bid</div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:var(--green);font-weight:700">${usd(t2.usd)} (${t2.tokens} ${esc(c.symbol)})</div>
-          <div class="dim" style="font-size:11px">@ <b>${px(t2.price)}</b></div>
-        </div>
-      </div>
-
-      <div class="ticket-row">
-        <div>
-          <b style="color:var(--text)">3. Limit Buy · Tranche 3 (25%)</b>
-          <div class="dim" style="font-size:10.5px">Wick liquidity bottom bid</div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:var(--green);font-weight:700">${usd(t3.usd)} (${t3.tokens} ${esc(c.symbol)})</div>
-          <div class="dim" style="font-size:11px">@ <b>${px(t3.price)}</b></div>
-        </div>
-      </div>
-
-      <div class="ticket-row" style="background:rgba(194,205,148,0.06);border-radius:6px;padding:8px 6px">
-        <span class="ticket-lbl" style="font-weight:700;color:var(--text)">Blended Avg Cost</span>
-        <span class="ticket-val" style="color:var(--olive)">${px(tp.blended_avg)} (${tp.total_tokens || (Number(t1.tokens)+Number(t2.tokens)+Number(t3.tokens)).toFixed(2)} tokens)</span>
-      </div>
-
-      <div class="ticket-row">
-        <div>
-          <b style="color:var(--red)">4. Hard Stop Loss Order</b>
-          <div class="dim" style="font-size:10.5px">Stop Limit order placed immediately</div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:var(--red);font-weight:700">@ ${px(c.stop_loss || tp.stop_loss)}</div>
-          <div class="dim" style="font-size:11px">Max risk: -${usd(tp.downside_loss)} (${tp.risk_pct}%)</div>
-        </div>
-      </div>
-
-      <div class="ticket-row">
-        <div>
-          <b style="color:var(--green)">5. Take Profit Targets (50% / 50%)</b>
-          <div class="dim" style="font-size:10.5px">T1 &amp; T2 scale out</div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:var(--green);font-weight:700">${px(c.target_1 || tp.target_1)} / ${px(c.target_2 || tp.target_2)}</div>
-          <div class="dim" style="font-size:11px">${c.rr_ratio || '3.5'}:1 R:R</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
-      <button class="btn" onclick="sizeEntryForCoin('${esc(c.symbol)}', ${c.entry_high || c.price}, ${c.stop_loss || c.price*0.95}, ${c.target_1 || c.price*1.15}, ${c.target_2 || c.price*1.25});$('orderSlipDlg').close()">💰 Custom Sizer</button>
-      <button class="btn primary" onclick="copyRobinhoodSlip('${esc(c.symbol)}')">📋 Copy Ticket</button>
     </div>
   `;
   $('orderSlipDlg').showModal();
@@ -1564,55 +1800,63 @@ function copyRobinhoodSlip(sym) {
   const c = callouts.find(x => x.symbol === sym) || dash?.markets?.find(m => m.symbol === sym);
   if (!c) return;
   const tp = c.tranche_plan || {};
-  const t1 = tp.tranche_1 || { usd: 1770.30, price: c.entry_high || c.price, tokens: 0 };
-  const t2 = tp.tranche_2 || { usd: 2023.20, price: (c.entry_low + c.entry_high)/2 || c.price, tokens: 0 };
-  const t3 = tp.tranche_3 || { usd: 1264.50, price: c.entry_low || c.price, tokens: 0 };
+  const u1 = (bankrollUsd * 0.35).toFixed(2);
+  const u2 = (bankrollUsd * 0.40).toFixed(2);
+  const u3 = (bankrollUsd * 0.25).toFixed(2);
+  const p1 = tp.tranche_1?.price || c.entry_high || c.price;
+  const p2 = tp.tranche_2?.price || (c.entry_low + c.entry_high)/2 || c.price;
+  const p3 = tp.tranche_3?.price || c.entry_low || c.price;
 
   const text = `CB TRADING · ROBINHOOD ORDER TICKET
 Asset: ${c.symbol} (${c.name || c.symbol})
-Dry Powder: $5,058.00 Cash Reserve
+Dry Powder: ${usd(bankrollUsd)} Cash Reserve
 
 1. ORDER 1 (Limit Buy - 35%):
-   Amount: $1,770.30 (${t1.tokens} ${c.symbol})
-   Limit Price: ${px(t1.price)}
+   Amount: $${u1}
+   Limit Price: ${px(p1)}
 
 2. ORDER 2 (Limit Buy - 40%):
-   Amount: $2,023.20 (${t2.tokens} ${c.symbol})
-   Limit Price: ${px(t2.price)}
+   Amount: $${u2}
+   Limit Price: ${px(p2)}
 
 3. ORDER 3 (Limit Buy - 25%):
-   Amount: $1,264.50 (${t3.tokens} ${c.symbol})
-   Limit Price: ${px(t3.price)}
+   Amount: $${u3}
+   Limit Price: ${px(p3)}
 
 Blended Avg Entry: ${px(tp.blended_avg || c.price)}
 
 4. HARD STOP LOSS:
    Type: Stop Limit
    Stop Price: ${px(c.stop_loss || tp.stop_loss)}
-   Max Risk: -$${tp.downside_loss || 140} (${tp.risk_pct || 2.8}% of bankroll)
 
 5. TARGETS:
    Target 1 (50% exit): ${px(c.target_1 || tp.target_1)}
    Target 2 (50% exit): ${px(c.target_2 || tp.target_2)}`;
 
   navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied ${c.symbol} Robinhood Order Ticket to clipboard!`);
+    showToast(`📋 Copied ${c.symbol} Robinhood Order Ticket!`);
   }).catch(() => {
-    alert(text);
+    showToast(`Copied ${c.symbol} ticket`);
   });
 }
 
 function copyOrderDetails(sym, entry, stop, t1) {
   const text = `CB Sniper Plan: ${sym} | Buy Shelf: ${px(entry)} | Hard Stop: ${px(stop)} | Take Profit: ${px(t1)}`;
   navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied ${sym} plan to clipboard:\n${text}`);
-  }).catch(() => {
-    alert(text);
-  });
+    showToast(`📋 Copied ${sym} plan to clipboard!`);
+  }).catch(() => {});
 }
 
 function sizeEntryForCoin(sym, entry, stop, t1, t2) {
-  if ($('calcCoin')) $('calcCoin').value = sym;
+  if ($('calcCoin')) {
+    if (!Array.from($('calcCoin').options).some(o => o.value === sym)) {
+      const opt = document.createElement('option');
+      opt.value = sym;
+      opt.textContent = sym;
+      $('calcCoin').appendChild(opt);
+    }
+    $('calcCoin').value = sym;
+  }
   if ($('calcEntry')) $('calcEntry').value = entry;
   if ($('calcStop')) $('calcStop').value = stop;
   if ($('calcT1')) $('calcT1').value = t1;
@@ -1632,7 +1876,7 @@ function applyCalcPreset(sym) {
 }
 
 function runEntryCalc() {
-  const cap = +$('calcCapital').value || 1500;
+  const cap = +$('calcCapital').value || 1770;
   const entry = +$('calcEntry').value || 1;
   const stop = +$('calcStop').value || 0;
   const t1 = +$('calcT1').value || 0;
@@ -1660,6 +1904,7 @@ function runEntryCalc() {
   const tr3Cap = cap * 0.25, tr3Px = entry * 0.970, tr3Tokens = tr3Cap / tr3Px;
   const blendedTokens = tr1Tokens + tr2Tokens + tr3Tokens;
   const blendedAvg = cap / blendedTokens;
+  const remDry = Math.max(0, bankrollUsd - cap);
 
   $('calcResults').innerHTML = `
     <div style="font-size:13px;margin-bottom:8px">
@@ -1677,8 +1922,8 @@ function runEntryCalc() {
         <div class="v up">+${usd(gainT2)} (${rrT2}:1 R:R)</div>
       </div>
       <div class="stat"><div class="k">Dry Powder Remaining</div>
-        <div class="v">${usd(Math.max(0, 5058 - cap))}</div>
-        <div class="s">${((5058 - cap)/5058 * 100).toFixed(0)}% of $5,058 untouched</div>
+        <div class="v">${usd(remDry)}</div>
+        <div class="s">${((remDry / (bankrollUsd || 1)) * 100).toFixed(0)}% of ${usd(bankrollUsd)} untouched</div>
       </div>
     </div>
     <div style="font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:8px" class="muted">
@@ -1695,7 +1940,7 @@ function runEntryCalc() {
 async function loadHL() {
   try { hl = await getJSON('/api/hyperliquid?coin=HYPE'); errs.hl = null; }
   catch (e) { errs.hl = e.message; }
-  renderHL(); renderPlanner(); renderTicker(); showErrors();
+  renderHL(); renderPlanner(); renderTicker(); renderPulseStrip(); checkCustomPriceAlerts(); showErrors();
 }
 
 function renderHL() {
@@ -1842,7 +2087,7 @@ function renderTicker() {
 async function loadDash(force) {
   try { dash = await getJSON('/api/data' + (force ? '?refresh=1' : '')); errs.dash = null; }
   catch (e) { errs.dash = e.message; }
-  renderMarkets(); renderNews(); renderTicker(); showErrors();
+  renderMarkets(); renderNews(); renderTicker(); renderPulseStrip(); showErrors();
   $('updated').textContent = dash ? 'Updated ' + new Date(dash.fetched_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Offline';
 }
 
@@ -2026,14 +2271,15 @@ function importPositions() {
       if (!Array.isArray(arr)) throw 0;
       positions = arr.filter(p => p && p.symbol && p.qty > 0 && p.avg > 0).map(p => ({ ...p, symbol: String(p.symbol).toUpperCase() }));
       savePositions();
-    } catch { alert("That file isn't a CB Radar positions backup."); }
+    } catch { showToast("⚠️ Invalid backup file."); }
   };
   inp.click();
 }
 function resetToVerifiedPositions() {
-  if (confirm("Reset positions to verified Robinhood fills (HYPE 23.15 @ $85.45, SOL 15.58 @ $114.40, META 0.26 @ $769.31)?")) {
+  if (confirm("Reset positions to verified Robinhood state (100% flat in crypto, META 0.26 @ $769.31)?")) {
     positions = JSON.parse(JSON.stringify(VERIFIED_INITIAL_POSITIONS));
     savePositions();
+    showToast("✅ Reset to verified Robinhood positions");
   }
 }
 
@@ -2092,6 +2338,8 @@ function refreshAll(force) {
 updateAudioUI();
 updateVoiceUI();
 updateNotifyUI();
+updateBankroll(bankrollUsd);
+renderPriceAlerts();
 go(view);
 renderPortfolio();
 runEntryCalc();
